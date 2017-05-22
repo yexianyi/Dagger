@@ -11,17 +11,18 @@ import javax.ws.rs.core.CacheControl;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import org.codehaus.jettison.json.JSONException;
-import org.codehaus.jettison.json.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import net.yxy.dagger.global.Constants;
 import net.yxy.dagger.nlp.service.NameFinderService;
 import net.yxy.dagger.nlp.service.SentenceDetectorService;
 import net.yxy.dagger.nlp.service.TokenizeService;
+import net.yxy.dagger.util.JMSUtil;
 import net.yxy.dagger.util.JSONUtil;
 import opennlp.tools.util.Span;
+
+import org.codehaus.jettison.json.JSONException;
+import org.codehaus.jettison.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Path("/service/datatypes")
 public class DatatypeServiceApi {
@@ -33,7 +34,8 @@ public class DatatypeServiceApi {
 	@Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
 	public Response scanDatatypes(String jsonReq) {
-	
+		Response.ResponseBuilder response = Response.ok().type(MediaType.APPLICATION_JSON);
+		
 		try {
 			SentenceDetectorService sds = new SentenceDetectorService() ;
 			TokenizeService ts = new TokenizeService() ;
@@ -52,9 +54,18 @@ public class DatatypeServiceApi {
 						for (int ti = span.getStart(); ti < span.getEnd(); ti++) {
 							cb.append(tokens[ti]).append(" ");
 						}
-						System.out.println(cb.substring(0, cb.length() - 1)); 
-						System.out.println("\ttype: " + span.getType());  
-						System.out.println("\tprob: " + span.getProb());
+						
+						String dtCandidate = cb.substring(0, cb.length() - 1) ;
+						String type = span.getType() ;
+						double possibility = span.getProb() ;
+						
+						String jsonRsp = "{"
+											+ "\"DataType\":\"" + dtCandidate+ "\"," 
+											+ "\"Type\":\"" + type + "\","
+											+ "\"Possibility\":\"" + possibility + "\""
+										+ "}";
+						JMSUtil.sendToQueue(Constants.JMS_DATATYPES_RSP_QUEUE, jsonRsp) ;
+						System.out.println(jsonRsp); 
 					}
 				}
 			}
@@ -64,13 +75,11 @@ public class DatatypeServiceApi {
 			}
 			
 			
-		} catch (IOException e) {
+		} catch (IOException | JSONException e) {
 			e.printStackTrace();
-		} catch (JSONException e) {
-			e.printStackTrace();
-		}
+			response = Response.serverError().type(MediaType.APPLICATION_JSON);
+		} 
 		
-		Response.ResponseBuilder response = Response.ok(null).type(MediaType.APPLICATION_JSON);
 		
 		///////////////HTTP Cache by Expire////////////////
 		//Expires:

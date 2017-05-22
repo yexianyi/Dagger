@@ -41,7 +41,7 @@ public class JsoupTest {
                 Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
  
                 // Create the destination (Topic or Queue)
-                Destination destination = session.createQueue(Constants.DATATYPES_RSP_QUEUE);
+                Destination destination = session.createQueue(Constants.JMS_DATATYPES_RSP_QUEUE);
  
                 // Create a MessageProducer from the Session to the Topic or Queue
                 MessageProducer producer = session.createProducer(destination);
@@ -79,7 +79,7 @@ public class JsoupTest {
                 Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
  
                 // Create the destination (Topic or Queue)
-                Destination destination = session.createQueue(Constants.DATATYPES_RSP_QUEUE);
+                Destination destination = session.createQueue(Constants.JMS_DATATYPES_RSP_QUEUE);
  
                 // Create a MessageConsumer from the Session to the Topic or Queue
                 MessageConsumer consumer = session.createConsumer(destination);
