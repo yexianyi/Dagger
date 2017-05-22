@@ -1,0 +1,100 @@
+<!doctype html>
+<html>
+<head>
+  <title>Network | Basic usage</title>
+  <script type="text/javascript" src="js/keycharm.js"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.19.1/vis.min.js"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.19.1/vis.min.css" rel="stylesheet" type="text/css" />
+
+  <style type="text/css">
+    #mynetwork {
+      width: 600px;
+      height: 400px;
+      border: 1px solid lightgray;
+    }
+  </style>
+</head>
+<body>
+
+<p>
+  Create a simple network with some nodes and edges.
+</p>
+
+<div id="mynetwork"></div>
+<pre id="eventSpan"></pre>
+
+<script type="text/javascript">
+  // create an array with nodes
+  var nodes = new vis.DataSet([
+    {id: 1, value: 7, label: 'Node 1'},
+    {id: 2, value: 8, label: 'Node 2'},
+    {id: 3, value: 9, label: 'Node 3'},
+    {id: 4, value: 10, label: 'Node 4'},
+    {id: 5, value: 11, label: 'Node 5'}
+  ]);
+
+  // create an array with edges
+  var edges = new vis.DataSet([
+    {from: 1, to: 3},
+    {from: 1, to: 2},
+    {from: 2, to: 4},
+    {from: 2, to: 5},
+    {from: 3, to: 3}
+  ]);
+
+  // create a network
+  var container = document.getElementById('mynetwork');
+  var data = {
+    nodes: nodes,
+    edges: edges
+  };
+  
+  var options = {
+		  interaction:{
+			    keyboard: false,
+			    hover: true
+			  },
+			  
+		  nodes: {
+			  color: {
+			      border: '#FFA500',
+			      background: '#FFA500',
+			      highlight: {
+			        border: '#FFA500',
+			        background: '#FF7900'
+			      },
+			      hover: {
+			        border: '#FF7900',
+			        background: '#FF7900'
+			      }
+			    },
+	          shape: 'circle',
+	          shdow: true ,
+	          scaling:{
+	            label: {
+	              min:8,
+	              max:20
+	            }
+	          }
+	        }
+	};
+ 	
+	var network = new vis.Network(container, data, options);
+	network.on("click", function (params) {
+	    params.event = "[original event]";
+	    document.getElementById('eventSpan').innerHTML = '<h2>Click event:</h2>' + JSON.stringify(params, null, 4);
+	});
+  
+	//https://github.com/AlexDM0/keycharm
+	var keys = vis.keycharm();
+	keys.bind("backspace", function(event) {
+		var selection = network.getSelection();
+		 //alert(selection.nodes) ;
+		nodes.remove(selection.nodes) ;
+		/** remove action **/
+	});
+</script>
+
+
+</body>
+</html>

@@ -1,0 +1,69 @@
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Athena</title>
+<link rel="stylesheet" type="text/css" href="css/themes/default/easyui.css">
+<link rel="stylesheet" type="text/css" href="css/themes/icon.css">
+<link rel="stylesheet" type="text/css" href="css/demo.css">
+<script type="text/javascript" src="js/jquery-1.12.1.min.js"></script>
+<script type="text/javascript" src="js/jquery.easyui.min.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){
+	$('#click_btn').click(function(){ 
+		alert('Click');
+	});
+	
+	$('#ajax').click(function(){ 
+		//alert('rest');
+		 $.ajax({ 
+            type: "GET",
+            dataType: "json",
+            url: "/athena/api/admin/server/list",
+            success: function(data){        
+               alert(JSON.stringify(data));
+               $('#response').text(JSON.stringify(data)) ;
+            },
+	         error: function (msg, url, line) {
+	             alert('msg = ' + msg + ', url = ' + url + ', line = ' + line);
+	         }
+        }); 
+	});
+});
+
+</script>
+
+
+</head>
+<body>
+	<h2>Athena Management</h2>
+
+	<button id="ajax">ajax call</button>
+	<button id="click_btn">Click</button>
+	
+	<p id="response"></p>
+	
+	<div style="margin:20px 0 10px 0;"></div>
+    <div class="easyui-tabs" style="width:1200px;height:550px">
+        <div title="About" style="padding:10px">
+            <p style="font-size:14px">jQuery EasyUI framework helps you build your web pages easily.</p>
+            <ul>
+                <li>easyui is a collection of user-interface plugin based on jQuery.</li>
+                <li>easyui provides essential functionality for building modem, interactive, javascript applications.</li>
+                <li>using easyui you don't need to write many javascript code, you usually defines user-interface by writing some HTML markup.</li>
+                <li>complete framework for HTML5 web page.</li>
+                <li>easyui save your time and scales while developing your products.</li>
+                <li>easyui is very easy but powerful.</li>
+            </ul>
+        </div>
+        <div title="My Documents" style="padding:10px">
+            <ul class="easyui-tree" data-options="url:'tree_data1.json',method:'get',animate:true"></ul>
+        </div>
+        <div title="Help" data-options="iconCls:'icon-help',closable:true" style="padding:10px">
+            This is the help content.
+        </div>
+    </div>
+
+</body>
+
+
+</html>
