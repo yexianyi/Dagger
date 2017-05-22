@@ -45,7 +45,7 @@ public class JsoupTest {
  
                 // Create a MessageProducer from the Session to the Topic or Queue
                 MessageProducer producer = session.createProducer(destination);
-                producer.setDeliveryMode(DeliveryMode.PERSISTENT);
+                producer.setDeliveryMode(DeliveryMode.NON_PERSISTENT);
  
                 // Create a messages
                 String text = "Hello world! From: " + Thread.currentThread().getName() + " : " + "sdfdsfsd";

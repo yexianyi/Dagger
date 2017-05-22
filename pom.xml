@@ -197,10 +197,6 @@
 								<config>src/main/resources/realm.properties</config>
 							</userRealm>
 						</userRealms>
-			          <scanIntervalSeconds>10</scanIntervalSeconds>
-			          <webAppConfig>
-			            <jettyEnvXml>/src/main/webapp/WEB-INF/jetty-env.xml</jettyEnvXml>
-			          </webAppConfig>
 					</configuration>
 				</plugin>
 			</plugins>

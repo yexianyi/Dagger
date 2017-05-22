@@ -45,17 +45,4 @@
 			<form-error-page>/logonError.html?param=test</form-error-page>
 		</form-login-config>
 	</login-config> -->
-
-
-	<resource-ref>
-		<description>Connection Factory</description>
-		<res-ref-name>jms/connectionFactory</res-ref-name>
-		<res-type>javax.jms.QueueConnectionFactory</res-type>
-		<res-auth>Container</res-auth>
-	</resource-ref>
-
-	<resource-env-ref>
-		<resource-env-ref-name>jms/datatypesRspQueue</resource-env-ref-name>
-		<resource-env-ref-type>javax.jms.Queue</resource-env-ref-type>
-	</resource-env-ref>
 </web-app>

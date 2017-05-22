@@ -1,15 +1,12 @@
 package net.yxy.dagger.main;
 
 
-import org.eclipse.jetty.plus.webapp.EnvConfiguration;
-import org.eclipse.jetty.plus.webapp.PlusConfiguration;
+import org.apache.activemq.broker.BrokerService;
 import org.eclipse.jetty.server.HttpConfiguration;
 import org.eclipse.jetty.server.SecureRequestCustomizer;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.HandlerCollection;
-import org.eclipse.jetty.webapp.Configuration;
 import org.eclipse.jetty.webapp.WebAppContext;
-import org.eclipse.jetty.webapp.WebXmlConfiguration;
 
 /**
 * This class shows how to configure Authentication in programming method.
@@ -20,6 +17,13 @@ import org.eclipse.jetty.webapp.WebXmlConfiguration;
 public class AppMain {
 	
 	public static void main(String[] args) throws Exception {
+		
+		//Start ActiveMQ Broker
+		BrokerService broker =new BrokerService();  
+	    broker.setPersistent(false);
+	    broker.setBrokerName("testName");//如果启动多个Broker时，必须为Broker设置一个名称  
+	    broker.addConnector("tcp://localhost:61616");  
+	    broker.start();  
 		
 		// Since this example shows off SSL configuration, we need a keystore
        // with the appropriate key. These lookup of jetty.home is purely a hack
@@ -65,7 +69,7 @@ public class AppMain {
 
        // Set the connectors
 //       server.setConnectors(new Connector[] {sslConnector});
-
+	    
 		// Handler for multiple web apps
 		HandlerCollection handlers = new HandlerCollection();
 
@@ -73,12 +77,6 @@ public class AppMain {
 		WebAppContext webapp1 = new WebAppContext();
 		webapp1.setResourceBase("src/main/webapp");
 		webapp1.setContextPath("/dagger");
-		
-		EnvConfiguration envConfiguration = new EnvConfiguration();
-        envConfiguration.setJettyEnvXml(AppMain.class.getResource("/WEB-INF/jetty-env.xml").toURI().toURL());
-        //Adding the actual classes instead of just the class names
-        webapp1.setConfigurations(new Configuration[]{envConfiguration, new PlusConfiguration(), new WebXmlConfiguration()});
-        webapp1.setDescriptor(AppMain.class.getResource("/WEB-INF/web.xml").toString());
 		
 		// Init global functional features
 //		webapp1.addEventListener(new InitApplication());
