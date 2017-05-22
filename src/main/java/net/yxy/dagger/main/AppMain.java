@@ -1,25 +1,15 @@
 package net.yxy.dagger.main;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.util.Collections;
 
-import org.eclipse.jetty.security.ConstraintMapping;
-import org.eclipse.jetty.security.ConstraintSecurityHandler;
-import org.eclipse.jetty.security.HashLoginService;
-import org.eclipse.jetty.security.LoginService;
-import org.eclipse.jetty.security.authentication.FormAuthenticator;
-import org.eclipse.jetty.server.Connector;
+import org.eclipse.jetty.plus.webapp.EnvConfiguration;
+import org.eclipse.jetty.plus.webapp.PlusConfiguration;
 import org.eclipse.jetty.server.HttpConfiguration;
-import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.SecureRequestCustomizer;
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.ServerConnector;
-import org.eclipse.jetty.server.SslConnectionFactory;
 import org.eclipse.jetty.server.handler.HandlerCollection;
-import org.eclipse.jetty.util.security.Constraint;
-import org.eclipse.jetty.util.ssl.SslContextFactory;
+import org.eclipse.jetty.webapp.Configuration;
 import org.eclipse.jetty.webapp.WebAppContext;
+import org.eclipse.jetty.webapp.WebXmlConfiguration;
 
 /**
 * This class shows how to configure Authentication in programming method.
@@ -83,6 +73,12 @@ public class AppMain {
 		WebAppContext webapp1 = new WebAppContext();
 		webapp1.setResourceBase("src/main/webapp");
 		webapp1.setContextPath("/dagger");
+		
+		EnvConfiguration envConfiguration = new EnvConfiguration();
+        envConfiguration.setJettyEnvXml(AppMain.class.getResource("/WEB-INF/jetty-env.xml").toURI().toURL());
+        //Adding the actual classes instead of just the class names
+        webapp1.setConfigurations(new Configuration[]{envConfiguration, new PlusConfiguration(), new WebXmlConfiguration()});
+        webapp1.setDescriptor(AppMain.class.getResource("/WEB-INF/web.xml").toString());
 		
 		// Init global functional features
 //		webapp1.addEventListener(new InitApplication());

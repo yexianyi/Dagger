@@ -21,11 +21,13 @@ import org.jsoup.nodes.Document;
 public class NameFinderService {
 	
 	private InputStream nameModelIn = null ;
+	private TokenNameFinderModel nameFinderModel = null ;
 	
 	public boolean start() {
 		try {
 			nameModelIn = new FileInputStream(NameFinderService.class.getResource("/en-ner-datatype.bin").getPath());
-		} catch (FileNotFoundException e) {
+			nameFinderModel = new TokenNameFinderModel(nameModelIn) ;
+		} catch (IOException e) {
 			e.printStackTrace();
 			return false ;
 		}
@@ -47,7 +49,7 @@ public class NameFinderService {
 	}
 	
 	public Span[] getSpan(String[] tokens) throws IOException{
-		TokenNameFinderModel nameFinderModel = new TokenNameFinderModel(nameModelIn);
+		
 		NameFinderME nameFinder = new NameFinderME(nameFinderModel);
 		return nameFinder.find(tokens) ;
 	}
@@ -58,9 +60,7 @@ public class NameFinderService {
 		InputStream tokenModelIn = new FileInputStream(TokenizeService.class.getResource("/en-token.bin").getPath());
 		InputStream nameModelIn = new FileInputStream(NameFinderService.class.getResource("/en-ner-datatype.bin").getPath());
 
-
 		try {
-			
 			SentenceModel sentModel = new SentenceModel(sentModelIn);
 			SentenceDetectorME sentenceDetector = new SentenceDetectorME(sentModel);
 			
@@ -70,13 +70,13 @@ public class NameFinderService {
 			TokenNameFinderModel nameFinderModel = new TokenNameFinderModel(nameModelIn);
 			NameFinderME nameFinder = new NameFinderME(nameFinderModel);
 
-//			URL url = new URL("https://www.cloudera.com/documentation/enterprise/latest/topics/impala_datatypes.html");
+			URL url = new URL("https://www.cloudera.com/documentation/enterprise/latest/topics/impala_datatypes.html");
 //			URL url = new URL("https://gpdb.docs.pivotal.io/500Alpha/ref_guide/data_types.html");
 //			URL url = new URL("https://docs.oracle.com/cd/B28359_01/server.111/b28318/datatype.htm#CNCPT1821");
 //			URL url = new URL("https://dev.mysql.com/doc/refman/5.7/en/integer-types.html");
 //			URL url = new URL("https://www.postgresql.org/docs/9.2/static/datatype.html");
 //			URL url = new URL("https://docs.microsoft.com/en-us/sql/t-sql/data-types/data-types-transact-sql");
-			URL url = new URL("https://www.ibm.com/support/knowledgecenter/en/SSULQD_7.2.1/com.ibm.nz.sproc.doc/c_sproc_data_types_aliases.html?view=embed");
+//			URL url = new URL("https://www.ibm.com/support/knowledgecenter/en/SSULQD_7.2.1/com.ibm.nz.sproc.doc/c_sproc_data_types_aliases.html?view=embed");
 			
 			Document doc = Jsoup.parse(url, 60000);
 			String text = doc.body().text();

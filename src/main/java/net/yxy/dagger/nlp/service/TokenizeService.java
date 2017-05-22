@@ -18,11 +18,13 @@ import org.jsoup.nodes.Document;
 public class TokenizeService {
 	
 	private InputStream tokenModelIn ;
+	private TokenizerModel tokenModel ;
 	
 	public boolean start(){
 		try {
 			tokenModelIn = new FileInputStream(TokenizeService.class.getResource("/en-token.bin").getPath());
-		} catch (FileNotFoundException e) {
+			tokenModel = new TokenizerModel(tokenModelIn) ;
+		} catch (IOException e) {
 			e.printStackTrace();
 			return false ;
 		}
@@ -43,7 +45,6 @@ public class TokenizeService {
 	}
 	
 	public String[] getTokens(String sentence) throws IOException {
-			TokenizerModel tokenModel = new TokenizerModel(tokenModelIn);
 			Tokenizer tokenizer = new TokenizerME(tokenModel);
 			return tokenizer.tokenize(sentence) ;
 	}

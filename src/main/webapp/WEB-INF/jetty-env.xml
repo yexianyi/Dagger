@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE Configure PUBLIC "-//Mort Bay Consulting//DTD Configure//EN" "http://www.eclipse.org/jetty/configure.dtd">
+
+<Configure id='dagger-webapp-wac' class="org.eclipse.jetty.webapp.WebAppContext">
+  <New id="cf" class="org.eclipse.jetty.plus.jndi.Resource">
+    <Arg><Ref refid='wac'/></Arg> <!-- reference to WebAppContext -->
+    <Arg>jms/connectionFactory</Arg>
+    <Arg>
+      <New class="org.apache.activemq.ActiveMQConnectionFactory">
+        <Arg>tcp://localhost:61616</Arg>
+      </New>
+    </Arg>
+  </New>
+  <New id="datatypesRspQueue" class="org.eclipse.jetty.plus.jndi.Resource">
+		<Arg>jms/datatypesRspQueue</Arg>
+		<Arg>
+			<New class="org.apache.activemq.command.ActiveMQQueue">
+				<Arg>DATATYPES.RSP.QUEUE</Arg>
+			</New>
+		</Arg>
+	</New>
+</Configure>

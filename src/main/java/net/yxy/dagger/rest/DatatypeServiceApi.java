@@ -3,14 +3,16 @@ package net.yxy.dagger.rest;
 
 import java.io.IOException;
 
+import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.CacheControl;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.codehaus.jettison.json.JSONException;
+import org.codehaus.jettison.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,46 +20,53 @@ import net.yxy.dagger.global.Constants;
 import net.yxy.dagger.nlp.service.NameFinderService;
 import net.yxy.dagger.nlp.service.SentenceDetectorService;
 import net.yxy.dagger.nlp.service.TokenizeService;
+import net.yxy.dagger.util.JSONUtil;
 import opennlp.tools.util.Span;
 
-@Path("/service")
+@Path("/service/datatypes")
 public class DatatypeServiceApi {
 	static private Logger logger = LoggerFactory.getLogger(DatatypeServiceApi.class);  
 	
+	
 	@POST
-    @Path("/datatypes/scan/{url}")
+    @Path("/scan")
+	@Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-	public Response scanDatatypes(@PathParam("url") String url) {
+	public Response scanDatatypes(String jsonReq) {
 	
 		try {
 			SentenceDetectorService sds = new SentenceDetectorService() ;
 			TokenizeService ts = new TokenizeService() ;
 			NameFinderService nfs = new NameFinderService() ;
-			sds.start() ;
-			ts.start() ;
-			nfs.start() ;
 			
-			String[] sentences = sds.getSentences(url) ;
-			for(String sentence : sentences){
-				String[] tokens = ts.getTokens(sentence) ;
-				Span nameSpans[] = nfs.getSpan(tokens);
-				for(Span span:nameSpans){
-					StringBuilder cb = new StringBuilder();  
-					for (int ti = span.getStart(); ti < span.getEnd(); ti++) {
-						cb.append(tokens[ti]).append(" ");
+			if(sds.start() && ts.start() && nfs.start()){
+				JSONObject jsonObj = new JSONObject(jsonReq) ;
+				String url = JSONUtil.findAttribute(jsonObj, "url") ;
+				
+				String[] sentences = sds.getSentences(url) ;
+				for(String sentence : sentences){
+					String[] tokens = ts.getTokens(sentence) ;
+					Span nameSpans[] = nfs.getSpan(tokens);
+					for(Span span:nameSpans){
+						StringBuilder cb = new StringBuilder();  
+						for (int ti = span.getStart(); ti < span.getEnd(); ti++) {
+							cb.append(tokens[ti]).append(" ");
+						}
+						System.out.println(cb.substring(0, cb.length() - 1)); 
+						System.out.println("\ttype: " + span.getType());  
+						System.out.println("\tprob: " + span.getProb());
 					}
-					System.out.println(cb.substring(0, cb.length() - 1)); 
-					System.out.println("\ttype: " + span.getType());  
-					System.out.println("\tprob: " + span.getProb());
 				}
 			}
 			
-			nfs.close() ;
-			ts.close() ;
-			sds.close() ;
+			if(	nfs.close() && ts.close() && sds.close()){
+				
+			}
 			
 			
 		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (JSONException e) {
 			e.printStackTrace();
 		}
 		

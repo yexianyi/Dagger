@@ -15,11 +15,13 @@ import opennlp.tools.sentdetect.SentenceModel;
 public class SentenceDetectorService {
 	
 	private InputStream modelIn ;
+	private SentenceModel model ;
 	
 	public boolean start(){
 		try {
 			modelIn = new FileInputStream(SentenceDetectorService.class.getResource("/en-sent.bin").getPath());
-		} catch (FileNotFoundException e) {
+			model = new SentenceModel(modelIn);
+		} catch (IOException e) {
 			e.printStackTrace();
 			return false ;
 		}
@@ -39,22 +41,11 @@ public class SentenceDetectorService {
 	}
 	
 	public String[] getSentences(String url) throws IOException{
-		
-
-		try {
-			SentenceModel model = new SentenceModel(modelIn);
 			SentenceDetectorME sentenceDetector = new SentenceDetectorME(model);
-
 			URL target = new URL(url);
 			Document doc = Jsoup.parse(target, 3 * 1000);
 			String text = doc.body().text();
-
 			return sentenceDetector.sentDetect(text);
-		}
-		finally {
-		
-		}
-		
 	}
 
 	public static void main(String[] args) throws FileNotFoundException {

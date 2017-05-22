@@ -39,6 +39,14 @@
 	    <version>1.7.25</version>
 	</dependency>
 	
+	<!-- JMS Queue -->
+	<dependency>
+	    <groupId>org.apache.activemq</groupId>
+	    <artifactId>activemq-core</artifactId>
+	    <version>5.7.0</version>
+	</dependency>
+	
+	
 	<!-- Jetty -->
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
@@ -69,6 +77,11 @@
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-jmx</artifactId>
 			<version>${jetty.version}</version>
+		</dependency>
+		<dependency>
+		    <groupId>org.eclipse.jetty</groupId>
+		    <artifactId>jetty-plus</artifactId>
+		    <version>${jetty.version}</version>
 		</dependency>
 		
 		<!-- Jersey -->
@@ -147,7 +160,7 @@
 					<configuration>
 						<archive>
 							<manifest>
-								<mainClass>net.yxy.athena.main.AppMain3</mainClass>
+								<mainClass>net.yxy.dagger.main.AppMain</mainClass>
 							</manifest>
 						</archive>
 						<descriptorRefs>
@@ -184,6 +197,10 @@
 								<config>src/main/resources/realm.properties</config>
 							</userRealm>
 						</userRealms>
+			          <scanIntervalSeconds>10</scanIntervalSeconds>
+			          <webAppConfig>
+			            <jettyEnvXml>/src/main/webapp/WEB-INF/jetty-env.xml</jettyEnvXml>
+			          </webAppConfig>
 					</configuration>
 				</plugin>
 			</plugins>
