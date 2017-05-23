@@ -2,6 +2,10 @@ package net.yxy.dagger.rest;
 
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
@@ -11,6 +15,11 @@ import javax.ws.rs.core.CacheControl;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.codehaus.jettison.json.JSONException;
+import org.codehaus.jettison.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import net.yxy.dagger.global.Constants;
 import net.yxy.dagger.nlp.service.NameFinderService;
 import net.yxy.dagger.nlp.service.SentenceDetectorService;
@@ -18,11 +27,6 @@ import net.yxy.dagger.nlp.service.TokenizeService;
 import net.yxy.dagger.util.JMSUtil;
 import net.yxy.dagger.util.JSONUtil;
 import opennlp.tools.util.Span;
-
-import org.codehaus.jettison.json.JSONException;
-import org.codehaus.jettison.json.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Path("/service/datatypes")
 public class DatatypeServiceApi {
@@ -34,8 +38,8 @@ public class DatatypeServiceApi {
 	@Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
 	public Response scanDatatypes(String jsonReq) {
-		Response.ResponseBuilder response = Response.ok().type(MediaType.APPLICATION_JSON);
-		
+		Response.ResponseBuilder response = null ;
+		Map<String, Integer> resMap = new HashMap<String, Integer>() ;
 		try {
 			SentenceDetectorService sds = new SentenceDetectorService() ;
 			TokenizeService ts = new TokenizeService() ;
@@ -59,15 +63,36 @@ public class DatatypeServiceApi {
 						String type = span.getType() ;
 						double possibility = span.getProb() ;
 						
-						String jsonRsp = "{"
+						String jsonDataType = "{"
 											+ "\"DataType\":\"" + dtCandidate+ "\"," 
 											+ "\"Type\":\"" + type + "\","
 											+ "\"Possibility\":\"" + possibility + "\""
 										+ "}";
-						JMSUtil.sendToQueue(Constants.JMS_DATATYPES_RSP_QUEUE, jsonRsp) ;
-						System.out.println(jsonRsp); 
+						
+						if(resMap.containsKey(jsonDataType)){
+							resMap.put(jsonDataType, resMap.get(jsonDataType)+1) ;
+						}else{
+							resMap.put(jsonDataType, 1) ;
+						}
 					}
-				}
+				}//end introspection
+				
+				//assemble results
+				String jsonRsp = "{\"DataTypes\":[" ;
+				
+				Iterator<Map.Entry<String, Integer>> entries = resMap.entrySet().iterator();  
+				while (entries.hasNext()) {  
+					Entry<String, Integer> entry = entries.next();  
+					jsonObj = new JSONObject(entry.getKey()) ;
+					jsonObj.put("Count", entry.getValue()+"") ;
+					jsonRsp += jsonObj.toString() ;
+					if(entries.hasNext()){
+						jsonRsp += "," ;
+					}
+				}  
+				
+				jsonRsp += "]}";
+				response = Response.ok(jsonRsp).type(MediaType.APPLICATION_JSON) ;
 			}
 			
 			if(	nfs.close() && ts.close() && sds.close()){

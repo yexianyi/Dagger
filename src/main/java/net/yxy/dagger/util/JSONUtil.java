@@ -63,8 +63,7 @@ public final class JSONUtil {
                         }
                         
                     } catch (JSONException e) {
-                        logger.error("COMM", "85010", "Exception occurred: "+e.toString());
-                        logger.debug("COMM", "85999", e.getStackTrace());
+                    	e.printStackTrace();
                     }
                 }
 
@@ -82,8 +81,7 @@ public final class JSONUtil {
                 try {
                     return jsonObj.get(key).toString();
                 } catch (JSONException e) {
-                	logger.error("COMM", "85010", "Exception occurred: "+e.toString());
-                	logger.debug("COMM", "85999", e.getStackTrace());
+                	e.printStackTrace();
                 }
             }
             
@@ -103,8 +101,7 @@ public final class JSONUtil {
                 }
                 
             } catch (JSONException e) {
-            	logger.error("COMM", "85010", "Exception occurred: "+e.toString());
-            	logger.debug("COMM", "85999", e.getStackTrace());
+            	e.printStackTrace();
             }
         }
 
@@ -122,8 +119,7 @@ public final class JSONUtil {
                 try {
                     return jsonObj.getJSONObject(key);
                 } catch (JSONException e) {
-                    logger.error("COMM", "85010", "Exception occurred: "+e.toString());
-                    logger.debug("COMM", "85999", e.getStackTrace());
+                	e.printStackTrace();
                 }
             }
             
@@ -143,8 +139,7 @@ public final class JSONUtil {
                 }
                 
             } catch (JSONException e) {
-                logger.error("COMM", "85010", "Exception occurred: "+e.toString());
-                logger.debug("COMM", "85999", e.getStackTrace());
+            	e.printStackTrace();
             }
         }
 
@@ -165,8 +160,7 @@ public final class JSONUtil {
                         if(obj instanceof JSONArray)
                             return (JSONArray)obj;
                     } catch (JSONException e) {
-                        logger.error("COMM", "85010", "Exception occurred: "+e.toString());
-                        logger.debug("COMM", "85999", e.getStackTrace());
+                    	e.printStackTrace();
                     }
                 }
                 
@@ -186,8 +180,7 @@ public final class JSONUtil {
                     }
                     
                 } catch (JSONException e) {
-                    logger.error("COMM", "85010", "Exception occurred: "+e.toString());
-                    logger.debug("COMM", "85999", e.getStackTrace());
+                	e.printStackTrace();
                 }
             }
 
@@ -212,32 +205,11 @@ public final class JSONUtil {
                     }
                     
                 } catch (JSONException e) {
-                    logger.error("COMM", "85010", "Exception occurred: "+e.toString());
-                    logger.debug("COMM", "85999", e.getStackTrace());
+                	e.printStackTrace();
                 }
         }
         
         return jsonList ;
-    }
-    
-    public static String findVolumeUUID(JSONObject jsonObj) {
-        try {
-            JSONArray array = JSONUtil.findArray(jsonObj, "Log") ;
-//            System.out.println(array.length());
-            for(int i=0; i<array.length(); i++){
-                JSONObject obj = (JSONObject)array.get(i);
-                String msg = obj.getString("Msg");
-                if(msg.contains("UUID")){
-                    String[] msgs = msg.split(":");
-                    String uuid = msgs[1].trim();
-                    return uuid;
-                }
-            }
-        } catch (JSONException e) {
-            logger.error("COMM", "85010", "Exception occurred: "+e.toString());
-            logger.debug("COMM", "85999", e.getStackTrace());
-        }
-        return null;
     }
     
     
@@ -270,8 +242,7 @@ public final class JSONUtil {
                     namepairs += key + ":"+value +";";
                 }
             } catch (JSONException e) {
-                logger.error("COMM", "85010", "Exception occurred: "+e.toString());
-                logger.debug("COMM", "85999", e.getStackTrace());
+            	e.printStackTrace();
             }
         }
 

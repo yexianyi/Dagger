@@ -19,11 +19,11 @@ public class AppMain {
 	public static void main(String[] args) throws Exception {
 		
 		//Start ActiveMQ Broker
-		BrokerService broker =new BrokerService();  
-	    broker.setPersistent(false);
-	    broker.setBrokerName("testName");//如果启动多个Broker时，必须为Broker设置一个名称  
-	    broker.addConnector("tcp://localhost:61616");  
-	    broker.start();  
+//		BrokerService broker =new BrokerService();  
+//	    broker.setPersistent(false);
+//	    broker.setBrokerName("testName");
+//	    broker.addConnector("tcp://localhost:61616");  
+//	    broker.start();  
 		
 		// Since this example shows off SSL configuration, we need a keystore
        // with the appropriate key. These lookup of jetty.home is purely a hack
