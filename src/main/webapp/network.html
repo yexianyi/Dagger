@@ -1,4 +1,3 @@
-<!doctype html>
 <html>
 <head>
 	<meta charset="UTF-8">
@@ -6,11 +5,13 @@
 	<link rel="stylesheet" type="text/css" href="css/themes/default/easyui.css">
 	<link rel="stylesheet" type="text/css" href="css/themes/icon.css">
 	<link rel="stylesheet" type="text/css" href="css/demo.css">
-	<link href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.19.1/vis.min.css" rel="stylesheet" type="text/css" />
+	<link rel="stylesheet" type="text/css" href="css/vis.css">
+	<!-- <link href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.19.1/vis.min.css" rel="stylesheet" type="text/css" /> -->
 	<script type="text/javascript" src="js/jquery-3.2.1.min.js"></script>
 	<script type="text/javascript" src="js/jquery.easyui.min.js"></script>
 	<script type="text/javascript" src="js/keycharm.js"></script>
-	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.19.1/vis.min.js"></script>
+	<script type="text/javascript" src="js/vis.js"></script>
+	<!-- <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.19.1/vis.min.js"></script> -->
 	
 
 	<style type="text/css">
@@ -19,6 +20,7 @@
 	    height: 600px;
 	    border: 1px solid lightgray;
 	  }
+	  
 	</style>
 </head>
 <body>
@@ -36,6 +38,7 @@
 
 
 <div id="mynetwork"></div>
+<div style="width: 800px; font-size:14px; text-align: justify;">
 <pre id="eventSpan"></pre>
 
 <script type="text/javascript">
@@ -56,17 +59,35 @@
 	            success: function(response){        
 	            	var jsonRsp = jQuery.parseJSON(JSON.stringify(response));
 	            	var jsonArray = jsonRsp.DataTypes ;
-	            	
+	            	//init matrix to track edges 
+	            	for(var i=0; i<jsonArray.length; i++){  
+            			matrix[i] = new Array(); 
+	            		for(var j=0; j<jsonArray.length; j++){   
+	            			matrix[i][j] = 0 ;   
+	            		}
+            		}
 	            	
 	            	//generate nodes & edges
 	            	jQuery.each( jsonArray, function( i, item ) {
 	            		addNode(i, item.DataType, item.count, item.Possibility) ;
-	            		while(i==(to=getRandomArbitrary(0,jsonArray.length))) ;
+	            		while(i==(to=getRandomArbitrary(0,jsonArray.length)) || matrix[i][to]==1) ;
 	            		addEdge(i,to) ;
+	            		matrix[i][to] = 1 ;
+	            		matrix[to][i] = 1
             		});
+	            	
+	            	/* var resultStr = "" ;
+	            	for(var i=0; i<matrix.length; i++){
+	            		for(var j=0; j<matrix.length; j++){
+	            			resultStr += " "+matrix[i][j] ;
+	            		}
+	            		resultStr += "\n" ;
+	            	}
+	            	
+	            	alert(resultStr) ; */
 	            },
 		         error: function (msg, url, line) {
-		             alert('msg = ' + msg + ', url = ' + url + ', line = ' + line);
+		             alert('msg = ' + msg.toString() + ', url = ' + url + ', line = ' + line);
 		         }
 	        }); 
 		
@@ -83,14 +104,42 @@
 	
 	function removeNode(nodeId) {
         nodes.remove({id:nodeId});
-        var index = array.indexOf(nodeId);
-        nodeIds.splice(index,1);
+        //var index = array.indexOf(nodeId);
+        //nodeIds.splice(index,1);
+        for(var i=0; i<matrix.length; i++){
+        	if(i==nodeId){
+        		continue ;
+        	}
+        	
+        	if(matrix[i][nodeId]==1){// node#i is connected with removing node
+	        		//check if node#i is connected with another node
+	        		var hasAnotherConn = false ;
+	        		for(var j=0; j<matrix.length; j++){
+	        			if(j!=nodeId && matrix[i][j]==1){
+	        				hasAnotherConn = true ;
+	        				break ;
+	        			}
+	        		}
+	        		
+	        		if(!hasAnotherConn){//connect node#i with another node
+	        			while(nodeId==(end=getRandomArbitrary(0,matrix.length)) || matrix[i][end]==-1) ;
+	            		edges.add({from: i, to: end});
+	            		matrix[i][end] = 1 ;
+	        		}
+        	}
+        	
+        	matrix[i][nodeId] = -1 ;
+        	matrix[nodeId][i] = -1 ;
+        }
+        
     }
 	
 	function addEdge(start, end) {
 		edges.add({from: start, to: end});
     }
 
+  var matrix = new Array() ;
+	
   // store existing node Ids
   var nodeIds = [];
 	
@@ -110,6 +159,7 @@
   var options = {
 		  interaction:{
 			  	multiselect: true,
+			  	navigationButtons: true,
 			    keyboard: false,
 			    hover: true
 			  },
@@ -146,10 +196,8 @@
   
 	//https://github.com/AlexDM0/keycharm
 	var keys = vis.keycharm();
-	keys.bind("d", function(event) {
-		alert(JSON.stringify(edges)) ;
+	keys.bind("delete", function(event) {
 		var selection = network.getSelection();
-		alert(JSON.stringify(selection)) ;
 		var nodes = selection.nodes ;
 		jQuery.each(nodes, function(i, nodeId) {
 			/** remove action **/

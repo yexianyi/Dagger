@@ -39,7 +39,7 @@ public class DatatypeServiceApi {
     @Produces(MediaType.APPLICATION_JSON)
 	public Response scanDatatypes(String jsonReq) {
 		Response.ResponseBuilder response = null ;
-		Map<String, Integer> resMap = new HashMap<String, Integer>() ;
+		Map<String, JSONObject> resMap = new HashMap<String, JSONObject>() ;
 		try {
 			SentenceDetectorService sds = new SentenceDetectorService() ;
 			TokenizeService ts = new TokenizeService() ;
@@ -59,20 +59,28 @@ public class DatatypeServiceApi {
 							cb.append(tokens[ti]).append(" ");
 						}
 						
-						String dtCandidate = cb.substring(0, cb.length() - 1) ;
+						String dtName = cb.substring(0, cb.length() - 1) ;
 						String type = span.getType() ;
 						double possibility = span.getProb() ;
 						
 						String jsonDataType = "{"
-											+ "\"DataType\":\"" + dtCandidate+ "\"," 
+											+ "\"DataType\":\"" + dtName+ "\"," 
 											+ "\"Type\":\"" + type + "\","
-											+ "\"Possibility\":\"" + possibility + "\""
+											+ "\"Possibility\":\"" + possibility + "\","
+											+ "\"Count\":\"" + 1 + "\""
 										+ "}";
 						
-						if(resMap.containsKey(jsonDataType)){
-							resMap.put(jsonDataType, resMap.get(jsonDataType)+1) ;
+						if(resMap.containsKey(dtName)){
+							JSONObject oldObj = resMap.get(dtName) ;
+							Integer count = Integer.valueOf(JSONUtil.findAttribute(oldObj, "Count")) ;
+							Double oldPoss = Double.valueOf(JSONUtil.findAttribute(oldObj, "Possibility")) ;
+							if(oldPoss<possibility){
+								oldObj.put("Possibility", possibility) ;
+							}
+							oldObj.put("Count", count+1) ;
+							resMap.put(dtName, oldObj) ;
 						}else{
-							resMap.put(jsonDataType, 1) ;
+							resMap.put(dtName, new JSONObject(jsonDataType)) ;
 						}
 					}
 				}//end introspection
@@ -80,11 +88,10 @@ public class DatatypeServiceApi {
 				//assemble results
 				String jsonRsp = "{\"DataTypes\":[" ;
 				
-				Iterator<Map.Entry<String, Integer>> entries = resMap.entrySet().iterator();  
+				Iterator<Map.Entry<String, JSONObject>> entries = resMap.entrySet().iterator();  
 				while (entries.hasNext()) {  
-					Entry<String, Integer> entry = entries.next();  
-					jsonObj = new JSONObject(entry.getKey()) ;
-					jsonObj.put("Count", entry.getValue()+"") ;
+					Entry<String, JSONObject> entry = entries.next();  
+					jsonObj = entry.getValue() ;
 					jsonRsp += jsonObj.toString() ;
 					if(entries.hasNext()){
 						jsonRsp += "," ;
