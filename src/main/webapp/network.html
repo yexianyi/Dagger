@@ -28,12 +28,10 @@
   Create a simple network with some nodes and edges.
 </p>
 
-<div class="easyui-panel" style="width:100%;max-width:400px;padding:30px 60px;">
-	<div style="margin-bottom:20px">
-	    <input class="easyui-textbox" id="url_text" data-options="buttonText:'Introspect',prompt:'URL:(http(s)://)',onClickButton:function(){introspectDatatypes();}"  style="width:100%;height:32px;">
-	</div>
+<div style="margin-bottom:20px">
+    <input class="easyui-textbox" id="url_text" data-options="buttonText:'Introspect',prompt:'URL:(http(s)://)',onClickButton:function(){introspectDatatypes();}"  style="width:100%;height:32px;">
 </div>
-
+<br/>
 <div id="mynetwork">
 	<div class="vis-network" style="position: relative; overflow: hidden; touch-action: pan-y; -moz-user-select: none; width: 100%; height: 100%;" tabindex="900">
 		<canvas style="position: relative; touch-action: none; -moz-user-select: none; width: 100%; height: 100%;" width="1200" height="1200"></canvas>
