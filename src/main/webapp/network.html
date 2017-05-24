@@ -63,28 +63,19 @@
 	            	for(var i=0; i<jsonArray.length; i++){  
             			matrix[i] = new Array(); 
 	            		for(var j=0; j<jsonArray.length; j++){   
-	            			matrix[i][j] = 0 ;   
+	            			matrix[i][j] = 0 ;
 	            		}
             		}
 	            	
 	            	//generate nodes & edges
 	            	jQuery.each( jsonArray, function( i, item ) {
 	            		addNode(i, item.DataType, item.count, item.Possibility) ;
-	            		while(i==(to=getRandomArbitrary(0,jsonArray.length)) || matrix[i][to]==1) ;
-	            		addEdge(i,to) ;
-	            		matrix[i][to] = 1 ;
-	            		matrix[to][i] = 1
+	            		if(i>0){
+	            			while(i==(from=getRandomArbitrary(0,nodeIds.length))) ;
+		            		addEdge(from,i) ;
+	            		}
             		});
 	            	
-	            	/* var resultStr = "" ;
-	            	for(var i=0; i<matrix.length; i++){
-	            		for(var j=0; j<matrix.length; j++){
-	            			resultStr += " "+matrix[i][j] ;
-	            		}
-	            		resultStr += "\n" ;
-	            	}
-	            	
-	            	alert(resultStr) ; */
 	            },
 		         error: function (msg, url, line) {
 		             alert('msg = ' + msg.toString() + ', url = ' + url + ', line = ' + line);
@@ -104,30 +95,26 @@
 	
 	function removeNode(nodeId) {
         nodes.remove({id:nodeId});
-        //var index = array.indexOf(nodeId);
-        //nodeIds.splice(index,1);
+        var connCount = 0 ;
+        var relocPos = -1 ;
+        
+        for(var i=0; i<matrix.length; i++){
+        	if(matrix[nodeId][i]==1){
+        		if(connCount==0){
+        			connCount++ ;
+            		relocPos = i ;
+            		continue ;
+        		}
+        		if(connCount==1){
+        			addEdge(i,relocPos) ;
+        		}
+        	}
+        }
+        
         for(var i=0; i<matrix.length; i++){
         	if(i==nodeId){
         		continue ;
         	}
-        	
-        	if(matrix[i][nodeId]==1){// node#i is connected with removing node
-	        		//check if node#i is connected with another node
-	        		var hasAnotherConn = false ;
-	        		for(var j=0; j<matrix.length; j++){
-	        			if(j!=nodeId && matrix[i][j]==1){
-	        				hasAnotherConn = true ;
-	        				break ;
-	        			}
-	        		}
-	        		
-	        		if(!hasAnotherConn){//connect node#i with another node
-	        			while(nodeId==(end=getRandomArbitrary(0,matrix.length)) || matrix[i][end]==-1) ;
-	            		edges.add({from: i, to: end});
-	            		matrix[i][end] = 1 ;
-	        		}
-        	}
-        	
         	matrix[i][nodeId] = -1 ;
         	matrix[nodeId][i] = -1 ;
         }
@@ -136,6 +123,8 @@
 	
 	function addEdge(start, end) {
 		edges.add({from: start, to: end});
+		matrix[start][end] = 1 ;
+		matrix[end][start] = 1 ;
     }
 
   var matrix = new Array() ;
@@ -196,7 +185,7 @@
   
 	//https://github.com/AlexDM0/keycharm
 	var keys = vis.keycharm();
-	keys.bind("delete", function(event) {
+	keys.bind("d", function(event) {
 		var selection = network.getSelection();
 		var nodes = selection.nodes ;
 		jQuery.each(nodes, function(i, nodeId) {
