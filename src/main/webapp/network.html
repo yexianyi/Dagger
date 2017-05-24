@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html>
 <head>
 	<meta charset="UTF-8">
@@ -15,7 +16,7 @@
 	<style type="text/css">
 		#mynetwork {
 	      width: 100%;
-	      height: 600px;
+	      height: 500px;
 	      border: 1px solid lightgray;
 	    }
 	  
@@ -47,6 +48,7 @@
 		</div>
 	</div>
 </div>
+<div id="progressbar" class="easyui-progressbar" style="width:100%;"></div>
 <pre id="eventSpan"></pre>
 
 <script type="text/javascript">
@@ -80,13 +82,16 @@
             		}
 	            	
 	            	//generate nodes & edges
-	            	jQuery.each( jsonArray, function( i, item ) {
-	            		addNode(i, item.DataType, item.count, item.Possibility) ;
-	            		if(i>0){
-	            			while(i==(from=getRandomArbitrary(0,nodeIds.length))) ;
-		            		addEdge(from,i) ;
-	            		}
-	            		setTimeout(function() { console.log(i); }, i*1000);   
+	            	jQuery.each(jsonArray, function( i, item ) {
+            		    setTimeout(function(){
+            		    	addNode(i, item.DataType, item.count, item.Possibility) ;
+    	            		if(i>0){
+    	            			while(i==(from=getRandomArbitrary(0,nodeIds.length))) ;
+    		            		addEdge(from,i) ;
+    	            		}
+            		    	var percent = Math.round(i/(jsonArray.length-1) * 100) ;
+   	            		 	$('#progressbar').progressbar('setValue', percent);
+            		    },i*100);
             		});
 	            	
 	            },
