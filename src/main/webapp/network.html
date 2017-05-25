@@ -7,49 +7,25 @@
 	<link rel="stylesheet" type="text/css" href="css/themes/icon.css">
 	<link rel="stylesheet" type="text/css" href="css/demo.css">
 	<link rel="stylesheet" type="text/css" href="css/vis.css">
-	<script type="text/javascript" src="js/jquery-3.2.1.min.js"></script>
-	<script type="text/javascript" src="js/jquery.easyui.min.js"></script>
-	<script type="text/javascript" src="js/keycharm.js"></script>
-	<script type="text/javascript" src="js/vis.js"></script>
+	<link rel="stylesheet" type="text/css" href="css/multiselect.css" media="screen"  >
 	
-
 	<style type="text/css">
 		#mynetwork {
 	      width: 100%;
 	      height: 500px;
 	      border: 1px solid lightgray;
 	    }
-	  
 	</style>
-</head>
-<body>
-
-<p>
-  Create a simple network with some nodes and edges.
-</p>
-
-<div style="margin-bottom:20px">
-    <input class="easyui-textbox" id="url_text" data-options="buttonText:'Introspect',prompt:'URL:(http(s)://)',onClickButton:function(){introspectDatatypes();}"  style="width:100%;height:32px;">
-</div>
-<br/>
-<div id="mynetwork">
-	<div class="vis-network" style="position: relative; overflow: hidden; touch-action: pan-y; -moz-user-select: none; width: 100%; height: 100%;" tabindex="900">
-		<canvas style="position: relative; touch-action: none; -moz-user-select: none; width: 100%; height: 100%;" width="1200" height="1200"></canvas>
-		<div class="vis-navigation">
-			<div class="vis-button vis-up" style="touch-action: pan-y; -moz-user-select: none;"></div>
-			<div class="vis-button vis-down" style="touch-action: pan-y; -moz-user-select: none;"></div>
-			<div class="vis-button vis-left" style="touch-action: pan-y; -moz-user-select: none;"></div>
-			<div class="vis-button vis-right" style="touch-action: pan-y; -moz-user-select: none;"></div>
-			<div class="vis-button vis-zoomIn" style="touch-action: pan-y; -moz-user-select: none;"></div>
-			<div class="vis-button vis-zoomOut" style="touch-action: pan-y; -moz-user-select: none;"></div>
-			<div class="vis-button vis-zoomExtends" style="touch-action: pan-y; -moz-user-select: none;"></div>
-		</div>
-	</div>
-</div>
-<div id="progressbar" class="easyui-progressbar" style="width:100%;"></div>
-<pre id="eventSpan"></pre>
-
-<script type="text/javascript">
+	
+	<script type="text/javascript" src="js/jquery-3.2.1.min.js"></script>
+	<script type="text/javascript" src="js/jquery.easyui.min.js"></script>
+	<script type="text/javascript" src="js/keycharm.js"></script>
+	<script type="text/javascript" src="js/vis.js"></script>
+	<script type="text/javascript" src="js/jquery.multi-select.js"></script>
+	<script type="text/javascript">
+	
+	$('#my-select').multiSelect()
+	
 	var matrix = null ;
 	var nodeIds = null;
 	var container = null ;
@@ -145,6 +121,11 @@
 	}
 	
 	function addNode(index, name, val, poss) {
+		//var div = document.getElementById('mynetwork');
+	    //var clientWidth = div.clientWidth;
+		//var clientHeight = div.clientHeight;
+		
+        //nodes.add({id:index, value:val, label:name, x: getRandomArbitrary(0,300), y: getRandomArbitrary(0,200)});
         nodes.add({id:index, value:val, label:name});
         nodeIds.push(index);
     }
@@ -219,6 +200,96 @@
  	
 	
 </script>
+
+</head>
+<body>
+
+<p>
+  Create a simple network with some nodes and edges.
+</p>
+
+<table style="width:100%; height:800px">
+	<tr style="height:30px">
+		<td>
+			<div >
+			    <input class="easyui-textbox" id="url_text" data-options="buttonText:'Introspect',prompt:'URL:(http(s)://)',onClickButton:function(){introspectDatatypes();}"  style="border-color:#FFA500;width:100%;height:32px;">
+			</div>
+		</td>
+	</tr>
+	
+	<tr style="height:500px">
+		<td>
+			<div id="mynetwork">
+				<div class="vis-network" style="position: relative; overflow: hidden; touch-action: pan-y; -moz-user-select: none; width: 100%; height: 100%;" tabindex="900">
+					<canvas style="position: relative; touch-action: none; -moz-user-select: none; width: 100%; height: 100%;" width="1200" height="1200"></canvas>
+					<div class="vis-navigation">
+						<div class="vis-button vis-up" style="touch-action: pan-y; -moz-user-select: none;"></div>
+						<div class="vis-button vis-down" style="touch-action: pan-y; -moz-user-select: none;"></div>
+						<div class="vis-button vis-left" style="touch-action: pan-y; -moz-user-select: none;"></div>
+						<div class="vis-button vis-right" style="touch-action: pan-y; -moz-user-select: none;"></div>
+						<div class="vis-button vis-zoomIn" style="touch-action: pan-y; -moz-user-select: none;"></div>
+						<div class="vis-button vis-zoomOut" style="touch-action: pan-y; -moz-user-select: none;"></div>
+						<div class="vis-button vis-zoomExtends" style="touch-action: pan-y; -moz-user-select: none;"></div>
+					</div>
+				</div>
+			</div>
+		</td>
+	</tr>
+	
+	<tr style="height:30px">
+		<td>
+			<div id="progressbar" class="easyui-progressbar" style="width:100%;"></div>
+		</td>
+	</tr>
+	
+	<tr style="width:100%; height:300px">
+		<td>
+			<table>
+	  			<tr>
+		  		<td>
+		  			
+				     <ul id="left" class="easyui-datalist" title="Candidates" lines="false" style="width:400px;height:250px">
+				        <li value="AL">Alabama</li>
+				        <li value="AK">Alaska</li>
+				        <li value="AZ">Arizona</li>
+				        <li value="AR">Arkansas</li>
+				        <li value="CA">California</li>
+				        <li value="CO">Colorado</li>
+				        <li value="CT">Connecticut</li>
+				        <li value="DE">Delaware</li>
+				        <li value="FL">Florida</li>
+				        <li value="WV">West Virginia</li>
+				        <li value="WI">Wisconsin</li>
+				        <li value="WY">Wyoming</li>
+				    </ul>
+		  		</td>
+		  		<td>
+		  			<img alt="" src="img/switch.png">
+		  		</td>
+		  		<td>
+		  			  <ul id="right" class="easyui-datalist" title="Selection" lines="false" style="width:400px;height:250px">
+				        <li value="AL">Alabama</li>
+				        <li value="AK">Alaska</li>
+				        <li value="AZ">Arizona</li>
+				        <li value="AR">Arkansas</li>
+				        <li value="CA">California</li>
+				        <li value="CO">Colorado</li>
+				        <li value="CT">Connecticut</li>
+				        <li value="DE">Delaware</li>
+				        <li value="FL">Florida</li>
+				        <li value="WV">West Virginia</li>
+				        <li value="WI">Wisconsin</li>
+				        <li value="WY">Wyoming</li>
+				    </ul>
+		  		</td>
+		  		</tr>
+		  </table>
+		</td>
+	</tr>
+
+</table>
+
+<pre id="eventSpan"></pre>
 
 
 </body>
