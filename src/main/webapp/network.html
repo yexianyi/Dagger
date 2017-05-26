@@ -28,6 +28,10 @@
 	<script type="text/javascript" src="js/jquery.multi-select.js"></script>
 	<script type="text/javascript">
 	
+	$(document).ready(function() {
+		bindEvents2MultiDataList() ;
+	});
+	
 	var matrix = null ;
 	var nodeIds = null;
 	var container = null ;
@@ -39,7 +43,7 @@
 	 function introspectDatatypes(){
 		destroy() ;
 		initNetwork() ;
-		initDataList() ;
+		clearDataList() ;
 		var url = $("#url_text").textbox('getValue');
 		 $.ajax({ 
 				contentType: "application/json",
@@ -124,12 +128,19 @@
 	}
 	
 	function addNode(index, name, val, poss) {
-        nodes.add({id:index, value:val, label:name});
+		var obj = {id:index, value:val, label:name} ;
+        nodes.add(obj);
         nodeIds.push(index);
-        addRow2List('left', {text:name,value:name}) ;
+        addRow2List('left', obj) ;
     }
 	
 	function removeNode(nodeId) {
+		//remove the node from Data List
+		var nodeLabel = nodes.get(nodeId).label;
+        removeFromDataListByName('left',nodeLabel) ;
+        removeFromDataListByName('right',nodeLabel) ;
+        
+        //remove the node from topology
         nodes.remove({id:nodeId});
         var connCount = 0 ;
         var relocPos = -1 ;
@@ -155,6 +166,7 @@
         	matrix[nodeId][i] = -1 ;
         }
         
+       
     }
 	
 	function addEdge(start, end) {
@@ -200,13 +212,48 @@
   /**
   	Following is for Multiselection DataList
   */
-  function initDataList() {
+  
+  function bindEvents2MultiDataList(){
+	  $('#left').datalist({
+		  onDblClickRow: function(index,row){
+	  		//alert("index="+index+" row="+row) ;
+	  		$('#right').datalist('appendRow',{text:row.text, value:row.value}) ;
+	  		removeFromDataListByIdx("left", index) ;
+	  	}
+	  });
+	  
+	  $('#right').datalist({
+		  onDblClickRow: function(index,row){
+	  		//alert("index="+index+" row="+row) ;
+	  		$('#left').datalist('appendRow',{text:row.text, value:row.value}) ;
+	  		removeFromDataListByIdx("right", index) ;
+	  	}
+	  });
+  		
+  }
+  
+  function clearDataList() {
 	$('#left').datalist('loadData', {"total":0,"rows":[]});
 	$('#right').datalist('loadData', {"total":0,"rows":[]});
   }
   
+  function removeFromDataListByIdx(listName, index){
+		$('#'+listName).datalist('deleteRow',index) ;
+  }
+  
+  function removeFromDataListByName(listName, name){
+	  var rows = $('#'+listName).datalist('getData').rows ;
+	  for(var i=0; i<rows.length; i++){
+		  if(rows[i].text==name){
+			  removeFromDataListByIdx(listName, i) ;
+		  }
+	  };
+  }
+  
+  
   function addRow2List(listName, object){
-  	$('#'+listName).datalist('appendRow',object) ;
+	  //object=={id:index, value:val, label:name}
+  	$('#'+listName).datalist('appendRow',{text:object.label, value:JSON.stringify(object)}) ;
   }
  	
 	
@@ -268,6 +315,11 @@
 		  			  <ul id="right" class="easyui-datalist" title="Selection" lines="false" style="width:100%;width:400px;height:250px;">
 				    </ul>
 		  		</td>
+		  		</tr>
+		  		<tr>
+		  		<td><a id="done_btn" onclick="removeFromDataListByName('left','ARRAY')" class="easyui-linkbutton">Text Button</a></td>
+		  		<td></td>
+		  		<td><a class="easyui-linkbutton">Text Button</a></td>
 		  		</tr>
 		  </table>
 		</td>
