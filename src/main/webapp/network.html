@@ -3,7 +3,7 @@
 <head>
 	<meta charset="UTF-8">
 	<title>Network | Basic usage</title>
-	<link rel="stylesheet" type="text/css" href="css/themes/default/easyui.css">
+	<link rel="stylesheet" type="text/css" href="css/theme.css">
 	<link rel="stylesheet" type="text/css" href="css/themes/icon.css">
 	<link rel="stylesheet" type="text/css" href="css/demo.css">
 	<link rel="stylesheet" type="text/css" href="css/vis.css">
@@ -15,6 +15,10 @@
 	      height: 500px;
 	      border: 1px solid lightgray;
 	    }
+	    
+	     .datalist .datagrid-cell, .m-list li{
+            width:400px;
+        }
 	</style>
 	
 	<script type="text/javascript" src="js/jquery-3.2.1.min.js"></script>
@@ -23,8 +27,6 @@
 	<script type="text/javascript" src="js/vis.js"></script>
 	<script type="text/javascript" src="js/jquery.multi-select.js"></script>
 	<script type="text/javascript">
-	
-	$('#my-select').multiSelect()
 	
 	var matrix = null ;
 	var nodeIds = null;
@@ -37,6 +39,7 @@
 	 function introspectDatatypes(){
 		destroy() ;
 		initNetwork() ;
+		initDataList() ;
 		var url = $("#url_text").textbox('getValue');
 		 $.ajax({ 
 				contentType: "application/json",
@@ -121,13 +124,9 @@
 	}
 	
 	function addNode(index, name, val, poss) {
-		//var div = document.getElementById('mynetwork');
-	    //var clientWidth = div.clientWidth;
-		//var clientHeight = div.clientHeight;
-		
-        //nodes.add({id:index, value:val, label:name, x: getRandomArbitrary(0,300), y: getRandomArbitrary(0,200)});
         nodes.add({id:index, value:val, label:name});
         nodeIds.push(index);
+        addRow2List('left', {text:name,value:name}) ;
     }
 	
 	function removeNode(nodeId) {
@@ -197,6 +196,18 @@
 	          }
 	        }
 	};
+  
+  /**
+  	Following is for Multiselection DataList
+  */
+  function initDataList() {
+	$('#left').datalist('loadData', {"total":0,"rows":[]});
+	$('#right').datalist('loadData', {"total":0,"rows":[]});
+  }
+  
+  function addRow2List(listName, object){
+  	$('#'+listName).datalist('appendRow',object) ;
+  }
  	
 	
 </script>
@@ -242,44 +253,19 @@
 		</td>
 	</tr>
 	
-	<tr style="width:100%; height:300px">
+	<tr style="width:100%; height:300px"  align="center">
 		<td>
 			<table>
 	  			<tr>
-		  		<td>
-		  			
-				     <ul id="left" class="easyui-datalist" title="Candidates" lines="false" style="width:400px;height:250px">
-				        <li value="AL">Alabama</li>
-				        <li value="AK">Alaska</li>
-				        <li value="AZ">Arizona</li>
-				        <li value="AR">Arkansas</li>
-				        <li value="CA">California</li>
-				        <li value="CO">Colorado</li>
-				        <li value="CT">Connecticut</li>
-				        <li value="DE">Delaware</li>
-				        <li value="FL">Florida</li>
-				        <li value="WV">West Virginia</li>
-				        <li value="WI">Wisconsin</li>
-				        <li value="WY">Wyoming</li>
+		  		<td >
+				     <ul id="left" class="easyui-datalist" lines="false" title="Candidates" style="width:100%;width:400px;height:250px;">
 				    </ul>
 		  		</td>
 		  		<td>
 		  			<img alt="" src="img/switch.png">
 		  		</td>
 		  		<td>
-		  			  <ul id="right" class="easyui-datalist" title="Selection" lines="false" style="width:400px;height:250px">
-				        <li value="AL">Alabama</li>
-				        <li value="AK">Alaska</li>
-				        <li value="AZ">Arizona</li>
-				        <li value="AR">Arkansas</li>
-				        <li value="CA">California</li>
-				        <li value="CO">Colorado</li>
-				        <li value="CT">Connecticut</li>
-				        <li value="DE">Delaware</li>
-				        <li value="FL">Florida</li>
-				        <li value="WV">West Virginia</li>
-				        <li value="WI">Wisconsin</li>
-				        <li value="WY">Wyoming</li>
+		  			  <ul id="right" class="easyui-datalist" title="Selection" lines="false" style="width:100%;width:400px;height:250px;">
 				    </ul>
 		  		</td>
 		  		</tr>
