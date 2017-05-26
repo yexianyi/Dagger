@@ -111,6 +111,18 @@
 		    document.getElementById('eventSpan').innerHTML = '<h2>Click event:</h2>' + JSON.stringify(params, null, 4);
 		});
 	  
+		//Bind network events
+		network.on("select", function (selectedObjs) {
+			var selectedNodes = selectedObjs.nodes ;
+			for(var i=0; i<selectedNodes.length; i++){
+				highlightRow('left',selectedNodes[i]) ;
+				highlightRow('right',selectedNodes[i]) ;
+			}
+			
+		});
+		
+		
+		//Bind Keyboard Events
 		//https://github.com/AlexDM0/keycharm
 		var keys = vis.keycharm();
 		keys.bind("delete", function(event) {
@@ -209,9 +221,9 @@
 	        }
 	};
   
-  /**
-  	Following is for Multiselection DataList
-  */
+  //////////////////////////////////////////////////
+  ////	Following is for Multiselection DataList  //
+  //////////////////////////////////////////////////
   
   function bindEvents2MultiDataList(){
 	  $('#left').datalist({
@@ -254,6 +266,10 @@
   function addRow2List(listName, object){
 	  //object=={id:index, value:val, label:name}
   	$('#'+listName).datalist('appendRow',{text:object.label, value:JSON.stringify(object)}) ;
+  }
+  
+  function highlightRow(listName, nodeId){
+	  $('#'+listName).datalist('highlightRow', nodeId) ;
   }
  	
 	
