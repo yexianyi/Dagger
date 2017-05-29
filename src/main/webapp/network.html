@@ -113,12 +113,21 @@
 	  
 		//Bind network events
 		network.on("select", function (selectedObjs) {
-			var selectedNodes = selectedObjs.nodes ;
-			for(var i=0; i<selectedNodes.length; i++){
-				if(highlightRow('left',selectedNodes[i]) || highlightRow('right',selectedNodes[i])) {
+			var selection = network.getSelection();
+			var selectedNodes = selection.nodes ;
+			jQuery.each(selectedNodes, function(i, nodeId) {
+				var nodeLabel = nodes.get(nodeId).label;
+				if(highlightRow('left',nodeLabel) || highlightRow('right',nodeLabel)) {
+					//do nothing
+				}
+			});
+			
+			/*for(var  i=0; i<selectedNodes.length; i++){
+				var selectedNode = nodes.get(selectedNodes[i]) ;
+				if(highlightRow('left',selectedNode.label) || highlightRow('right',selectedNode.label)) {
 					//do nothing
 				} 
-			}
+			} */
 			
 		});
 		
@@ -248,7 +257,7 @@
 	  		//alert("index="+index+" row="+row) ;
 	  		$('#right').datalist('appendRow',{text:row.text, value:row.value}) ;
 	  		removeFrmDataListByIdx("left", index) ;
-	  	  },
+	  	  }
 	  	  
 	     /*  onClickRow: function(index,row){
 	  		$('#right').datalist('appendRow',{text:row.text, value:row.value}) ;
@@ -260,7 +269,7 @@
 		  onDblClickRow: function(index,row){
 	  		//alert("index="+index+" row="+row) ;
 	  		$('#left').datalist('appendRow',{text:row.text, value:row.value}) ;
-	  		removeFromDataListByIdx("right", index) ;
+	  		removeFrmDataListByIdx("right", index) ;
 	  	}
 	  });
   		
@@ -287,13 +296,22 @@
   
   function addRow2List(listName, object){
 	  //object=={id:index, value:val, label:name}
-  	$('#'+listName).datalist('appendRow',{text:object.label, value:JSON.stringify(object)}) ;
+  	$('#'+listName).datalist('appendRow',{text:object.label, value:object}) ;
   }
   
-  function highlightRow(listName, nodeId){
-	   if($('#'+listName).datalist('validateRow', nodeId)){
-		  $('#'+listName).datalist('scrollTo', nodeId) ;
-		  $('#'+listName).datalist('selectRow', nodeId) ;
+  function highlightRow(listName, label){
+	  var rowId = null ;
+	  var records = $('#'+listName).datalist('getData') ;
+	  for(var i=0; i<records.rows.length; i++){
+		  if(records.rows[i].text == label){
+			  rowId = i ;
+			  break ;
+		  }
+	  }
+	  
+	   if(rowId != null && $('#'+listName).datalist('validateRow', rowId)){
+		  $('#'+listName).datalist('scrollTo', rowId) ;
+		  $('#'+listName).datalist('selectRow', rowId) ;
 		  return true ;
 	  }
 	  return false ; 
