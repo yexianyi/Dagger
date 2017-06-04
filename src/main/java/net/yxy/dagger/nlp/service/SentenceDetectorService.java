@@ -9,6 +9,7 @@ import java.net.URL;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
+import net.yxy.dagger.html.analyzer.HtmlElement;
 import opennlp.tools.sentdetect.SentenceDetectorME;
 import opennlp.tools.sentdetect.SentenceModel;
 
@@ -58,10 +59,14 @@ public class SentenceDetectorService {
 //			URL url = new URL("https://www.cloudera.com/documentation/enterprise/latest/topics/impala_datatypes.html");
 //			URL url = new URL("http://docs.aws.amazon.com/redshift/latest/dg/c_Supported_data_types.html");
 //			URL url = new URL("https://docs.oracle.com/cd/B28359_01/server.111/b28318/datatype.htm#CNCPT1821");
-			URL url = new URL("https://docs.microsoft.com/en-us/sql/t-sql/data-types/data-types-transact-sql");
+//			URL url = new URL("https://docs.microsoft.com/en-us/sql/t-sql/data-types/data-types-transact-sql");
+			URL url = new URL("https://www.ibm.com/support/knowledgecenter/en/SSULQD_7.2.1/com.ibm.nz.sproc.doc/c_sproc_data_types_aliases.html?view=embed") ;
 			
 			Document doc = Jsoup.parse(url, 3 * 1000);
-			String text = doc.body().text();
+//			DaggerElement daggerElem = 
+			String text = new HtmlElement(doc.body()).text();
+			
+//			String text = "IBM? PureData? System for Analytics, Version 7.2.1. Data types and aliases The following table lists the supported data types by their preferred name form, and includes supported aliases and some notes about the values. For more information about the data types and values, see the IBM Netezza Database User’s Guide. Table 1. Supported data types for variables. Data type, Alias names, Notes. BOOLEAN, BOOL, A boolean field can store true values, false values, and null. You can use the following words to specify booleans: true or false, on or off, ‘0’ or ‘1’, 'true’ or ‘false’, ‘t’ or ‘f’, ‘on’ or ‘off’, ‘yes’ or ‘no’. CHAR, CHARACTER, CHAR(n), CHARACTER(n), Fixed-length character string, blank padded to length n. If you do not specify n, the default is an unsized CHAR value. The maximum character string size is 64,000. VARCHAR CHARACTER VARYING, VARCHAR(n), CHARACTER VARYING(n), CHAR VARYING(n) Variable length character string to a maximum length of n. If you do not specify n, the default is an unsized VARCHAR value. There is no blank padding, and the value is stored as entered. The maximum character string size is 64,000.";
 
 			String sentences[] = sentenceDetector.sentDetect(text);
 			for (String sentence : sentences) {
