@@ -42,9 +42,7 @@ public class HtmlElement {
                 		field.setAccessible(false);
 						Method method = TextNode.class.getDeclaredMethod("lastCharIsWhitespace", new Class[]{StringBuilder.class});
 						method.setAccessible(true);
-						 if (accum.length() > 0 &&
-			                        (element.isBlock() || tag.getName().equals("br")) &&
-			                        !(boolean)method.invoke(null, new Object[]{accum})){
+						 if (accum.length() > 0 && (element.isBlock() || tag.getName().equals("br")) && !(boolean)method.invoke(null, new Object[]{accum})){
 							 accum.append(" ");
 						 }
 						 method.setAccessible(false);
@@ -56,44 +54,61 @@ public class HtmlElement {
                 }
             }
             
-            private boolean isCommaAdded = false ;
             
             public void tail(Node node, int depth) {
             	if (node instanceof Element){
+            		//find node tag name
+            		Element element = (Element) node;
+            		String nodeTagName = null ;
+            		
+            		try{
+                		Field field=element.getClass().getDeclaredField("tag");
+                		field.setAccessible(true);
+                		Tag tag = (Tag) field.get(element) ;
+                		field.setAccessible(false);
+                		nodeTagName = tag.getName();
+            		} catch (Exception e){
+            			e.printStackTrace();
+            		}
+            		
+            		//find the last valid char in a sentence
             		int endIdx = accum.length()-1 ;
-            		while(endIdx>0 && accum.charAt(endIdx)==' '){
-            			endIdx-- ;
+            		while(endIdx>0 && (accum.charAt(endIdx)==',' || accum.charAt(endIdx)=='.' || accum.charAt(endIdx)==' ')){
+            				endIdx-- ;
             		}
-            		if(endIdx>=0){
+    				endIdx++ ;
+            		
+            		if(endIdx >= 0 && endIdx<accum.length()){
             			char lastChar = accum.charAt(endIdx) ;
-                		if(lastChar == ',' || lastChar == '.'){
-                			return ;
-                		}
-                		Element element = (Element) node;
-                		String nodeTagName = null ;
                 		
-                		try{
-	                		Field field=element.getClass().getDeclaredField("tag");
-	                		field.setAccessible(true);
-	                		Tag tag = (Tag) field.get(element) ;
-	                		field.setAccessible(false);
-	                		nodeTagName = tag.getName();
-                		} catch (Exception e){
-                			e.printStackTrace();
-                		}
-                		
-                		if(isCommaAdded==false && (nodeTagName.equalsIgnoreCase("td") || nodeTagName.equalsIgnoreCase("li"))){
-                			accum.append(",") ;
-//                			isCommaAdded = true ;
-                		}else if(nodeTagName.equalsIgnoreCase("tr")){
-                			accum.append(".") ;
-                		}
+                		if(nodeTagName.equalsIgnoreCase("tr")){
+            				if(lastChar == ',' || lastChar == ' '){
+            					accum.replace(endIdx, accum.length(), ".") ;
+            				}else if(isTerminateChar(lastChar)){
+            					//do nothing
+            				}else{
+            					accum.append(".") ;
+            				}
+            			}else if((nodeTagName.equalsIgnoreCase("td") || nodeTagName.equalsIgnoreCase("li"))){
+            				if(!isTerminateChar(accum.charAt(endIdx))){
+            					accum.append(",") ;
+            				}
+        				}
             		}
+            		
             		
             	}
             }
         }).traverse(element);
         return accum.toString().trim();
+	}
+	
+	private boolean isTerminateChar(char ch){
+		if(ch=='!' || ch=='.' || ch=='?' || Character.isAlphabetic(ch)){
+			return true ;
+		}
+		
+		return false ;
 	}
 
 }
