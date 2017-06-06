@@ -71,35 +71,22 @@ public class HtmlElement {
             			e.printStackTrace();
             		}
             		
-            		//find the last valid char in a sentence
+            		//find the last valid char in a sentence(non-punctuation)
             		int endIdx = accum.length()-1 ;
-            		if(!Character.isAlphabetic((accum.charAt(endIdx)))){
-            			while(endIdx>0 && (accum.charAt(endIdx)==',' || accum.charAt(endIdx)=='.' || accum.charAt(endIdx)==' ')){
-            				endIdx-- ;
-            			}
-            			endIdx++ ;
+            		while(endIdx>=0 && !Character.isAlphabetic((accum.charAt(endIdx))) && !Character.isDigit((accum.charAt(endIdx)))){
+            			endIdx-- ;
             		}
             		
-            		if(endIdx >= 0 && endIdx<accum.length()){
-            			char lastChar = accum.charAt(endIdx) ;
-                		
-                		if(nodeTagName.equalsIgnoreCase("tr")){
-            				if(lastChar == ',' || lastChar == ' '){
-            					accum.replace(endIdx, accum.length(), ".") ;
-            				}else if(isTerminateChar(lastChar)){
-            					//do nothing
-            				}else{
-            					accum.append(".") ;
-            				}
-            			}else if((nodeTagName.equalsIgnoreCase("td") || nodeTagName.equalsIgnoreCase("li"))){
-            				if(!isTerminateChar(accum.charAt(endIdx))){
-            					accum.append(",") ;
-            				}
-        				}
+            		switch(nodeTagName){
+            			case "li":
+            			case "td":
+            				accum.replace(endIdx+1, accum.length(), ",") ; break ;
+            			case "tr":
+            			case "ul":
+            				accum.replace(endIdx+1, accum.length(), ".") ; break ;
             		}
             		
-            		
-            	}
+            	}//end Element
             }
         }).traverse(element);
         return accum.toString().trim();
