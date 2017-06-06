@@ -73,10 +73,12 @@ public class HtmlElement {
             		
             		//find the last valid char in a sentence
             		int endIdx = accum.length()-1 ;
-            		while(endIdx>0 && (accum.charAt(endIdx)==',' || accum.charAt(endIdx)=='.' || accum.charAt(endIdx)==' ')){
+            		if(!Character.isAlphabetic((accum.charAt(endIdx)))){
+            			while(endIdx>0 && (accum.charAt(endIdx)==',' || accum.charAt(endIdx)=='.' || accum.charAt(endIdx)==' ')){
             				endIdx-- ;
+            			}
+            			endIdx++ ;
             		}
-    				endIdx++ ;
             		
             		if(endIdx >= 0 && endIdx<accum.length()){
             			char lastChar = accum.charAt(endIdx) ;
@@ -104,7 +106,7 @@ public class HtmlElement {
 	}
 	
 	private boolean isTerminateChar(char ch){
-		if(ch=='!' || ch=='.' || ch=='?' || Character.isAlphabetic(ch)){
+		if(ch=='!' || ch=='.' || ch=='?' || ch==':'){
 			return true ;
 		}
 		
