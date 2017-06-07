@@ -36,7 +36,7 @@ public class HtmlElement {
                 } else if (node instanceof Element) {
                     Element element = (Element) node;
                 	try {
-                		Field field=element.getClass().getDeclaredField("tag");
+                		Field field = element.getClass().getDeclaredField("tag");
                 		field.setAccessible(true);
                 		Tag tag = (Tag) field.get(element) ;
                 		field.setAccessible(false);
@@ -47,7 +47,7 @@ public class HtmlElement {
 						 }
 						 method.setAccessible(false);
 					} catch (Exception e) {
-						e.printStackTrace();
+						//ignore
 					} 
 
                    
@@ -67,23 +67,26 @@ public class HtmlElement {
                 		Tag tag = (Tag) field.get(element) ;
                 		field.setAccessible(false);
                 		nodeTagName = tag.getName();
+                		
+                		int endIdx = findLastValidCharIdx(accum) ;
+                		switch(nodeTagName){
+	                		case "li":
+	                		case "td":
+	                			if(!isPunctuation(accum.charAt(endIdx)) || accum.charAt(endIdx)==')'){
+	                				accum.replace(endIdx+1, accum.length(), ",") ;
+	                			}
+	                			
+	                			break ;
+	                		case "tr":
+	                		case "ul":
+	                			if(accum.charAt(endIdx)==','){
+	                				accum.replace(endIdx, accum.length(), ".") ;
+	                			}
+	                			break ;
+                		}
+                		
             		} catch (Exception e){
-            			e.printStackTrace();
-            		}
-            		
-            		//find the last valid char in a sentence(non-punctuation)
-            		int endIdx = accum.length()-1 ;
-            		while(endIdx>=0 && !Character.isAlphabetic((accum.charAt(endIdx))) && !Character.isDigit((accum.charAt(endIdx)))){
-            			endIdx-- ;
-            		}
-            		
-            		switch(nodeTagName){
-            			case "li":
-            			case "td":
-            				accum.replace(endIdx+1, accum.length(), ",") ; break ;
-            			case "tr":
-            			case "ul":
-            				accum.replace(endIdx+1, accum.length(), ".") ; break ;
+            			//ignore
             		}
             		
             	}//end Element
@@ -92,8 +95,25 @@ public class HtmlElement {
         return accum.toString().trim();
 	}
 	
+	private boolean isPunctuation(char ch){
+		if((ch>32 && ch<48) || (ch>57 && ch<65) || (ch>90 && ch<97) || (ch>122 && ch<127)){
+			return true ;
+		}
+		
+		return false ;
+	}
+	
+	private int findLastValidCharIdx(StringBuilder sb){
+		int endIdx = sb.length()-1 ;
+		while(endIdx>=0 && Character.isWhitespace(sb.charAt(endIdx))){
+    			endIdx-- ;
+    	}
+		
+		return endIdx ;
+	}
+	
 	private boolean isTerminateChar(char ch){
-		if(ch=='!' || ch=='.' || ch=='?' || ch==':'){
+		if(ch==',' || ch=='.' || ch=='?' || ch==':'){
 			return true ;
 		}
 		
