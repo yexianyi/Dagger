@@ -77,10 +77,18 @@ public class HtmlElement {
 	                			}
 	                			
 	                			break ;
+	                		case "h1":
+	                		case "h2":
+	                		case "h3":
+	                		case "h4":
+	                		case "h5":
+	                		case "h6":
 	                		case "tr":
 	                		case "ul":
 	                			if(accum.charAt(endIdx)==','){
 	                				accum.replace(endIdx, accum.length(), ".") ;
+	                			}else if(!isPunctuation(accum.charAt(endIdx))){
+	                				accum.replace(endIdx+1, accum.length(), ".") ;
 	                			}
 	                			break ;
                 		}

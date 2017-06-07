@@ -59,8 +59,8 @@ public class SentenceDetectorService {
 //			URL url = new URL("https://www.cloudera.com/documentation/enterprise/latest/topics/impala_datatypes.html");
 //			URL url = new URL("http://docs.aws.amazon.com/redshift/latest/dg/c_Supported_data_types.html");
 //			URL url = new URL("https://docs.oracle.com/cd/B28359_01/server.111/b28318/datatype.htm#CNCPT1821");
-			URL url = new URL("https://docs.microsoft.com/en-us/sql/t-sql/data-types/data-types-transact-sql");
-//			URL url = new URL("https://www.ibm.com/support/knowledgecenter/en/SSULQD_7.2.1/com.ibm.nz.sproc.doc/c_sproc_data_types_aliases.html?view=embed") ;
+//			URL url = new URL("https://docs.microsoft.com/en-us/sql/t-sql/data-types/data-types-transact-sql");
+			URL url = new URL("https://www.ibm.com/support/knowledgecenter/en/SSULQD_7.2.1/com.ibm.nz.sproc.doc/c_sproc_data_types_aliases.html?view=embed") ;
 			
 			Document doc = Jsoup.parse(url, 3 * 1000);
 //			DaggerElement daggerElem = 
