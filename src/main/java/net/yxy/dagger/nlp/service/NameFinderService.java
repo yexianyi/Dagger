@@ -58,7 +58,7 @@ public class NameFinderService {
 	public static void main(String[] args) throws FileNotFoundException {
 		InputStream sentModelIn = new FileInputStream(NameFinderService.class.getResource("/en-sent.bin").getPath());
 		InputStream tokenModelIn = new FileInputStream(TokenizeService.class.getResource("/en-token.bin").getPath());
-		InputStream nameModelIn = new FileInputStream(NameFinderService.class.getResource("/en-ner-datatype.bin").getPath());
+		InputStream nameModelIn = new FileInputStream(NameFinderService.class.getResource("/en-ner-function.bin").getPath());
 
 		try {
 			SentenceModel sentModel = new SentenceModel(sentModelIn);
@@ -70,13 +70,15 @@ public class NameFinderService {
 			TokenNameFinderModel nameFinderModel = new TokenNameFinderModel(nameModelIn);
 			NameFinderME nameFinder = new NameFinderME(nameFinderModel);
 
-			URL url = new URL("https://www.cloudera.com/documentation/enterprise/latest/topics/impala_datatypes.html");
+//			URL url = new URL("https://www.cloudera.com/documentation/enterprise/latest/topics/impala_datatypes.html");
 //			URL url = new URL("https://gpdb.docs.pivotal.io/500Alpha/ref_guide/data_types.html");
 //			URL url = new URL("https://docs.oracle.com/cd/B28359_01/server.111/b28318/datatype.htm#CNCPT1821");
 //			URL url = new URL("https://dev.mysql.com/doc/refman/5.7/en/integer-types.html");
 //			URL url = new URL("https://www.postgresql.org/docs/9.2/static/datatype.html");
 //			URL url = new URL("https://docs.microsoft.com/en-us/sql/t-sql/data-types/data-types-transact-sql");
 //			URL url = new URL("https://www.ibm.com/support/knowledgecenter/en/SSULQD_7.2.1/com.ibm.nz.sproc.doc/c_sproc_data_types_aliases.html?view=embed");
+			URL url = new URL("https://www.cloudera.com/documentation/enterprise/latest/topics/impala_math_functions.html#math_functions") ;
+			
 			
 			Document doc = Jsoup.parse(url, 60000);
 //			String text = new HtmlElement(doc.body()).text();
