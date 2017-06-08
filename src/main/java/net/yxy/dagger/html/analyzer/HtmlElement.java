@@ -10,6 +10,7 @@ import org.jsoup.parser.Tag;
 import org.jsoup.select.NodeTraversor;
 import org.jsoup.select.NodeVisitor;
 
+@Deprecated
 public class HtmlElement {
 	private Element element ;
 	
@@ -66,7 +67,7 @@ public class HtmlElement {
                 		field.setAccessible(true);
                 		Tag tag = (Tag) field.get(element) ;
                 		field.setAccessible(false);
-                		nodeTagName = tag.getName();
+                		nodeTagName = tag.getName().toLowerCase();
                 		
                 		int endIdx = findLastValidCharIdx(accum) ;
                 		switch(nodeTagName){
@@ -77,6 +78,7 @@ public class HtmlElement {
 	                			}
 	                			
 	                			break ;
+	                		case "div":
 	                		case "h1":
 	                		case "h2":
 	                		case "h3":

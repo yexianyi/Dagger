@@ -6,6 +6,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+
 import opennlp.tools.namefind.NameFinderME;
 import opennlp.tools.namefind.TokenNameFinderModel;
 import opennlp.tools.sentdetect.SentenceDetectorME;
@@ -14,9 +17,6 @@ import opennlp.tools.tokenize.Tokenizer;
 import opennlp.tools.tokenize.TokenizerME;
 import opennlp.tools.tokenize.TokenizerModel;
 import opennlp.tools.util.Span;
-
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
 
 public class NameFinderService {
 	
@@ -70,15 +70,16 @@ public class NameFinderService {
 			TokenNameFinderModel nameFinderModel = new TokenNameFinderModel(nameModelIn);
 			NameFinderME nameFinder = new NameFinderME(nameFinderModel);
 
-//			URL url = new URL("https://www.cloudera.com/documentation/enterprise/latest/topics/impala_datatypes.html");
+			URL url = new URL("https://www.cloudera.com/documentation/enterprise/latest/topics/impala_datatypes.html");
 //			URL url = new URL("https://gpdb.docs.pivotal.io/500Alpha/ref_guide/data_types.html");
 //			URL url = new URL("https://docs.oracle.com/cd/B28359_01/server.111/b28318/datatype.htm#CNCPT1821");
 //			URL url = new URL("https://dev.mysql.com/doc/refman/5.7/en/integer-types.html");
 //			URL url = new URL("https://www.postgresql.org/docs/9.2/static/datatype.html");
 //			URL url = new URL("https://docs.microsoft.com/en-us/sql/t-sql/data-types/data-types-transact-sql");
-			URL url = new URL("https://www.ibm.com/support/knowledgecenter/en/SSULQD_7.2.1/com.ibm.nz.sproc.doc/c_sproc_data_types_aliases.html?view=embed");
+//			URL url = new URL("https://www.ibm.com/support/knowledgecenter/en/SSULQD_7.2.1/com.ibm.nz.sproc.doc/c_sproc_data_types_aliases.html?view=embed");
 			
 			Document doc = Jsoup.parse(url, 60000);
+//			String text = new HtmlElement(doc.body()).text();
 			String text = doc.body().text();
 			String sentences[] = sentenceDetector.sentDetect(text);
 			
