@@ -27,7 +27,7 @@ public class FunctionService {
 			String line;
 		    while ((line = br.readLine()) != null) {
 		    	if(line.trim().length()>0 && !line.trim().startsWith("#")){
-			    	standardFunctionMap.put(line, "false") ;
+			    	standardFunctionMap.put(line, null) ;
 			    }
 		    }
 
@@ -57,7 +57,11 @@ public class FunctionService {
 			Pattern pattern = Pattern.compile("\\b(?i)"+entity.getKey()+"\\b");
 			Matcher m = pattern.matcher(sentence);
 			if(m.find()){
-				standardFuncMap.put(entity.getKey(), "true") ;
+				if(standardFuncMap.get(entity.getKey()) == null){
+					standardFuncMap.put(entity.getKey(), sentence) ;
+				}else{
+					//ignore
+				}
 				return true ;
 			}
 		}

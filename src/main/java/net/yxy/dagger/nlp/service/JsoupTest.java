@@ -18,9 +18,12 @@ import net.yxy.dagger.match.service.FunctionService;
 public class JsoupTest {
 
 	public static void main(String[] args) throws Exception {
-//		URL url = new URL("https://www.cloudera.com/documentation/enterprise/latest/topics/impala_math_functions.html#math_functions");
-		URL url = new URL("https://dev.mysql.com/doc/refman/5.7/en/numeric-functions.html");
+		URL url = new URL("https://www.cloudera.com/documentation/enterprise/latest/topics/impala_math_functions.html#math_functions");
+//		URL url = new URL("https://dev.mysql.com/doc/refman/5.7/en/numeric-functions.html");
 //		URL url = new URL("http://docs.aws.amazon.com/redshift/latest/dg/r_ABS.html") ;
+//		URL url = new URL("https://www.postgresql.org/docs/9.1/static/functions-math.html") ;
+//		URL url = new URL("http://docs.oracle.com/cd/B19306_01/server.102/b14200/functions001.htm") ;
+		
 		
 		Document doc = Jsoup.parse(url, 3 * 1000);
 
@@ -60,17 +63,17 @@ public class JsoupTest {
 				if(fs.matchFunction(content, standardFuncMap)){
 					count++ ;
 				}
-//				System.out.println(elem.text()) ;
+				if(count==standardFuncMap.size()){
+					break ;
+				}
 			}
-			if(count==standardFuncMap.size()){
-				break ;
-			}
-//		    System.out.println(entry.getKey() + " : " + entry.getValue());
+			
+			break ;// only loop once for now 
 		}
 
 		for (Entry<String, String> entry : standardFuncMap.entrySet()){
-			if(entry.getValue()=="true"){
-				System.out.println(entry.getKey());
+			if(entry.getValue()!=null){
+				System.out.println(entry.getKey()+"---->"+entry.getValue());
 			}
 		}
 		
