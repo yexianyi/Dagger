@@ -4,8 +4,10 @@ import java.net.URL;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 import org.jsoup.Jsoup;
@@ -54,24 +56,30 @@ public class JsoupTest {
 		    }
 		});
 		
-		int count = 0;
+		Map<String, String> resultMap = null ;
+		TokenizeService ts = new TokenizeService() ;
+		ts.start() ;
 		for (Object tagEntry : tagStatisticArray) {
 			Map.Entry<String, Integer> entry = (Map.Entry<String, Integer>) tagEntry ;
 			Elements elemCandidates = doc.body().getElementsByTag(entry.getKey()) ;//tag name
+			Set<String> materialSet = new HashSet<String>() ;
 			for(Element elem : elemCandidates){
 				String content = elem.text() ;
-				if(fs.matchFunction(content, standardFuncMap)){
-					count++ ;
-				}
-				if(count==standardFuncMap.size()){
-					break ;
+				String[] tokens = ts.getTokens(content) ;
+				for(String token : tokens){
+					if(!materialSet.contains(token)){
+						materialSet.add(token) ;
+					}
 				}
 			}
 			
+			resultMap = fs.matchFunction(materialSet, standardFuncMap) ;
+			
 			break ;// only loop once for now 
 		}
+		ts.close() ;
 
-		for (Entry<String, String> entry : standardFuncMap.entrySet()){
+		for (Entry<String, String> entry : resultMap.entrySet()){
 			if(entry.getValue()!=null){
 				System.out.println(entry.getKey()+"---->"+entry.getValue());
 			}

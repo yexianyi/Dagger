@@ -50,50 +50,50 @@ public class TokenizeService {
 	}
 
 	public static void main(String[] args) throws FileNotFoundException {
-//		InputStream sentModelIn = new FileInputStream(TokenizeService.class.getResource("/en-sent.bin").getPath());
-//		InputStream tokenModelIn = new FileInputStream(TokenizeService.class.getResource("/en-token.bin").getPath());
-//
-//		try {
-//			
-//			SentenceModel sentModel = new SentenceModel(sentModelIn);
-//			SentenceDetectorME sentenceDetector = new SentenceDetectorME(sentModel);
-//			
-//			TokenizerModel tokenModel = new TokenizerModel(tokenModelIn);
-//			Tokenizer tokenizer = new TokenizerME(tokenModel);
-//
-//			URL url = new URL("https://www.cloudera.com/documentation/enterprise/latest/topics/impala_datatypes.html");
-//			Document doc = Jsoup.parse(url, 3 * 1000);
-//			String text = doc.body().text();
-//			String sentences[] = sentenceDetector.sentDetect(text);
-//			for (String sentence : sentences) {
-//				String tokens[] = tokenizer.tokenize(sentence);
-//				for(String token:tokens){
-//					System.out.println(token);
-//				}
-//				System.out.println("----------------------") ;
-//			}
-//		}
-//		catch (IOException e) {
-//		  e.printStackTrace();
-//		}
-//		finally {
-//		  if (sentModelIn != null) {
-//		    try {
-//		    	sentModelIn.close();
-//		    }
-//		    catch (IOException e) {
-//		    }
-//		  }
-//		  
-//		  if (tokenModelIn != null) {
-//			    try {
-//			    	tokenModelIn.close();
-//			    }
-//			    catch (IOException e) {
-//			    }
-//		  }
-//		}
-//			
+		InputStream sentModelIn = new FileInputStream(TokenizeService.class.getResource("/en-sent.bin").getPath());
+		InputStream tokenModelIn = new FileInputStream(TokenizeService.class.getResource("/en-token.bin").getPath());
+
+		try {
+			
+			SentenceModel sentModel = new SentenceModel(sentModelIn);
+			SentenceDetectorME sentenceDetector = new SentenceDetectorME(sentModel);
+			
+			TokenizerModel tokenModel = new TokenizerModel(tokenModelIn);
+			Tokenizer tokenizer = new TokenizerME(tokenModel);
+
+			URL url = new URL("https://www.cloudera.com/documentation/enterprise/latest/topics/impala_datatypes.html");
+			Document doc = Jsoup.parse(url, 3 * 1000);
+			String text = doc.body().text();
+			String sentences[] = sentenceDetector.sentDetect(text);
+			for (String sentence : sentences) {
+				String tokens[] = tokenizer.tokenize(sentence);
+				for(String token:tokens){
+					System.out.println(token);
+				}
+				System.out.println("----------------------") ;
+			}
+		}
+		catch (IOException e) {
+		  e.printStackTrace();
+		}
+		finally {
+		  if (sentModelIn != null) {
+		    try {
+		    	sentModelIn.close();
+		    }
+		    catch (IOException e) {
+		    }
+		  }
+		  
+		  if (tokenModelIn != null) {
+			    try {
+			    	tokenModelIn.close();
+			    }
+			    catch (IOException e) {
+			    }
+		  }
+		}
+			
 
 	}
 

@@ -56,7 +56,7 @@ public class FunctionServiceApi {
 				
 				String[] sentences = sds.getSentences(url) ;
 				for(String sentence : sentences){
-					fs.matchFunction(sentence, standardFuncMap) ;
+//					fs.matchFunction(sentence, standardFuncMap) ;
 					if(standardFuncMap.isEmpty()){
 						break ;
 					}

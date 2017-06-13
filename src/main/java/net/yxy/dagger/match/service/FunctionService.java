@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -52,21 +53,24 @@ public class FunctionService {
 	}
 	
 
-	public boolean matchFunction(String sentence, Map<String, String> standardFuncMap) {
+	public Map<String, String> matchFunction(Set<String> materialSet, Map<String, String> standardFuncMap) {
+		Map<String, String> resultMap = new LinkedHashMap<String, String>() ;
+		
 		for (Entry<String, String> entity : standardFuncMap.entrySet()) {
 			Pattern pattern = Pattern.compile("\\b(?i)"+entity.getKey()+"\\b");
-			Matcher m = pattern.matcher(sentence);
-			if(m.find()){
-				if(standardFuncMap.get(entity.getKey()) == null){
-					standardFuncMap.put(entity.getKey(), sentence) ;
-				}else{
-					//ignore
+			Iterator<String> it = materialSet.iterator();
+			while(it.hasNext()){
+			    String content = it.next();
+			    Matcher m = pattern.matcher(content);
+				if(m.find()){
+					resultMap.put(entity.getKey(), content) ;
+					it.remove();
 				}
-				return true ;
 			}
+			
 		}
 		
-		return false ;
+		return resultMap ;
 	}
 	
 	
@@ -77,6 +81,8 @@ public class FunctionService {
 		System.out.println(str.matches("\\b(?i)min_int\\b"));
 		
 	}
+
+
 	
 	
 }

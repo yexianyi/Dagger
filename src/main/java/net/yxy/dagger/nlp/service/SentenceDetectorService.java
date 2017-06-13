@@ -91,12 +91,12 @@ public class SentenceDetectorService {
 			Map<String, String> standardFuncMap= fs.getStandardFunctionMap() ;
 			Set<String> matchingResultSet = new HashSet<String>() ;
 			
-			for(String sentence : sentences){
-				fs.matchFunction(sentence, standardFuncMap) ;
-				if(standardFuncMap.isEmpty()){
-					break ;
-				}
-			}
+//			for(String sentence : sentences){
+//				fs.matchFunction(sentence, standardFuncMap) ;
+//				if(standardFuncMap.isEmpty()){
+//					break ;
+//				}
+//			}
 			
 			for(String function: matchingResultSet){
 				System.out.println(function);
