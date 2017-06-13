@@ -1,107 +1,81 @@
 package net.yxy.dagger.nlp.service;
 
-import javax.jms.Connection;
-import javax.jms.DeliveryMode;
-import javax.jms.Destination;
-import javax.jms.Message;
-import javax.jms.MessageConsumer;
-import javax.jms.MessageProducer;
-import javax.jms.Session;
-import javax.jms.TextMessage;
+import java.net.URL;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.regex.Pattern;
 
-import org.apache.activemq.ActiveMQConnectionFactory;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
-import net.yxy.dagger.global.Constants;
+import net.yxy.dagger.match.service.FunctionService;
 
 public class JsoupTest {
 
 	public static void main(String[] args) throws Exception {
-//		URL url = new URL("https://www.cloudera.com/documentation/enterprise/latest/topics/impala_datatypes.html");
-//		Document doc = Jsoup.parse(url, 3 * 1000);
-//
-//		String text = doc.body().text();
-//
-//		System.out.println(text); // outputs 1
+//		URL url = new URL("https://www.cloudera.com/documentation/enterprise/latest/topics/impala_math_functions.html#math_functions");
+		URL url = new URL("https://dev.mysql.com/doc/refman/5.7/en/numeric-functions.html");
+//		URL url = new URL("http://docs.aws.amazon.com/redshift/latest/dg/r_ABS.html") ;
 		
-		jmsProducer() ;
-		jmsConsumer() ;
+		Document doc = Jsoup.parse(url, 3 * 1000);
+
+		Map<String, Integer> statistic = new HashMap<String, Integer>() ;
+		
+		FunctionService fs = new FunctionService() ;
+		Map<String, String> standardFuncMap = fs.getStandardFunctionMap() ;
+		for (Entry<String, String> entity : standardFuncMap.entrySet()) {
+//			Elements elems = doc.body().getElementsContainingText(entity.getKey()) ;
+			Pattern pattern = Pattern.compile("\\b(?i)"+entity.getKey()+"\\b");
+			Elements elems = doc.body().getElementsMatchingOwnText(pattern) ;
+			if(elems.size()>0){
+				Element elem = elems.get(elems.size()-1) ;
+//				System.out.println(entity.getKey()+" ---->"+elem.tagName());
+				if(statistic.containsKey(elem.tagName())){
+					statistic.put(elem.tagName(), statistic.get(elem.tagName())+1) ;
+				}else{
+					statistic.put(elem.tagName(), 1) ;
+				}
+			}
+		}
+		
+		Object[] tagStatisticArray = statistic.entrySet().toArray();
+		Arrays.sort(tagStatisticArray, new Comparator() {
+		    public int compare(Object o1, Object o2) {
+		        return ((Map.Entry<String, Integer>) o2).getValue()
+		                   .compareTo(((Map.Entry<String, Integer>) o1).getValue());
+		    }
+		});
+		
+		int count = 0;
+		for (Object tagEntry : tagStatisticArray) {
+			Map.Entry<String, Integer> entry = (Map.Entry<String, Integer>) tagEntry ;
+			Elements elemCandidates = doc.body().getElementsByTag(entry.getKey()) ;//tag name
+			for(Element elem : elemCandidates){
+				String content = elem.text() ;
+				if(fs.matchFunction(content, standardFuncMap)){
+					count++ ;
+				}
+//				System.out.println(elem.text()) ;
+			}
+			if(count==standardFuncMap.size()){
+				break ;
+			}
+//		    System.out.println(entry.getKey() + " : " + entry.getValue());
+		}
+
+		for (Entry<String, String> entry : standardFuncMap.entrySet()){
+			if(entry.getValue()=="true"){
+				System.out.println(entry.getKey());
+			}
+		}
+		
+		
 
 	}
-	
-	public static void jmsProducer(){
-            try {
-                // Create a ConnectionFactory
-                ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory("tcp://localhost:61616");
- 
-                // Create a Connection
-                Connection connection = connectionFactory.createConnection();
-                connection.start();
- 
-                // Create a Session
-                Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
- 
-                // Create the destination (Topic or Queue)
-                Destination destination = session.createQueue(Constants.JMS_DATATYPES_RSP_QUEUE);
- 
-                // Create a MessageProducer from the Session to the Topic or Queue
-                MessageProducer producer = session.createProducer(destination);
-                producer.setDeliveryMode(DeliveryMode.NON_PERSISTENT);
- 
-                // Create a messages
-                String text = "Hello world! From: " + Thread.currentThread().getName() + " : " + "sdfdsfsd";
-                TextMessage message = session.createTextMessage(text);
- 
-                // Tell the producer to send the message
-                System.out.println("Sent message: "+ message.hashCode() + " : " + Thread.currentThread().getName());
-                producer.send(message);
- 
-                // Clean up
-                session.close();
-                connection.close();
-            }
-            catch (Exception e) {
-                System.out.println("Caught: " + e);
-                e.printStackTrace();
-            }
-        }
-	
-        public static void jmsConsumer() {
-            try {
- 
-                // Create a ConnectionFactory
-                ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory("tcp://localhost:61616");
- 
-                // Create a Connection
-                Connection connection = connectionFactory.createConnection();
-                connection.start();
- 
-                // Create a Session
-                Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
- 
-                // Create the destination (Topic or Queue)
-                Destination destination = session.createQueue(Constants.JMS_DATATYPES_RSP_QUEUE);
- 
-                // Create a MessageConsumer from the Session to the Topic or Queue
-                MessageConsumer consumer = session.createConsumer(destination);
- 
-                // Wait for a message
-                Message message = consumer.receive(1000);
- 
-                if (message instanceof TextMessage) {
-                    TextMessage textMessage = (TextMessage) message;
-                    String text = textMessage.getText();
-                    System.out.println("Received: " + text);
-                } else {
-                    System.out.println("Received: " + message);
-                }
- 
-                consumer.close();
-                session.close();
-                connection.close();
-            } catch (Exception e) {
-                System.out.println("Caught: " + e);
-                e.printStackTrace();
-            }
-        }
 
 }

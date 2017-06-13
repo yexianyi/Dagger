@@ -1,63 +1,77 @@
 package net.yxy.dagger.match.service;
 
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.Enumeration;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Properties;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class FunctionService {
 
-	private static Properties standardFunctionSet ;
+	private static Map<String, String> standardFunctionMap = new LinkedHashMap<String, String>()  ;
 	
 	static{
-		standardFunctionSet = new Properties() ;
-		InputStream in = FunctionService.class.getResourceAsStream("/functionEntities");
+		loadFile() ;
+	}
+	
+	private static void loadFile(){
+		BufferedReader br = null ;
 		try {
-			standardFunctionSet.load(in);
+			br = new BufferedReader(new FileReader(FunctionService.class.getResource("/functionEntities").getPath()));
+			
+			String line;
+		    while ((line = br.readLine()) != null) {
+		    	if(line.trim().length()>0 && !line.trim().startsWith("#")){
+			    	standardFunctionMap.put(line, "false") ;
+			    }
+		    }
+
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
+		} finally {
+			if(br!=null){
+				try {
+					br.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
 		}
 	}
 	
 	
-	public Map<String, String> getStandardFunctionSet(){
-		Map<String, String> map = new HashMap<String, String> () ;
-		Enumeration en = standardFunctionSet.propertyNames();
-        while (en.hasMoreElements()) {
-         String key = (String) en.nextElement();
-               String Property = standardFunctionSet.getProperty (key);
-               System.out.println(key+Property);
-               map.put(key+Property, Property);
-        }
-        
-        return map ;
+	public Map<String, String> getStandardFunctionMap(){
+        return new LinkedHashMap<String, String>(standardFunctionMap) ;
 	}
 	
 
-	public void matchFunction(String sentence, Map<String, String> standardFuncMap, Set<String> matchingResultSet) {
+	public boolean matchFunction(String sentence, Map<String, String> standardFuncMap) {
 		for (Entry<String, String> entity : standardFuncMap.entrySet()) {
-			if(sentence.matches("/b"+entity.getKey()+"/b")){
-				matchingResultSet.add(entity.getKey()) ;
-				standardFuncMap.remove(entity.getKey()) ;
-				break ;
+			Pattern pattern = Pattern.compile("\\b(?i)"+entity.getKey()+"\\b");
+			Matcher m = pattern.matcher(sentence);
+			if(m.find()){
+				standardFuncMap.put(entity.getKey(), "true") ;
+				return true ;
 			}
 		}
 		
-		
+		return false ;
 	}
 	
 	
-	
 	public static void main(String[] args){
-		Enumeration en = standardFunctionSet.propertyNames();
-        while (en.hasMoreElements()) {
-         String key = (String) en.nextElement();
-               String Property = standardFunctionSet.getProperty (key);
-           }
+		String str = "min_int" ;
+		   Pattern r = Pattern.compile("\\bmin_int\\b", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+		     Matcher m = r.matcher(str);
+		System.out.println(str.matches("\\b(?i)min_int\\b"));
+		
 	}
 	
 	

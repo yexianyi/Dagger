@@ -51,15 +51,16 @@ public class FunctionServiceApi {
 				String url = JSONUtil.findAttribute(jsonObj, "url") ;
 				
 				FunctionService fs = new FunctionService() ;
-				Map<String, String> standardFuncMap= fs.getStandardFunctionSet() ;
+				Map<String, String> standardFuncMap= fs.getStandardFunctionMap() ;
 				Set<String> matchingResultSet = new HashSet<String>() ;
 				
 				String[] sentences = sds.getSentences(url) ;
 				for(String sentence : sentences){
-					fs.matchFunction(sentence, standardFuncMap, matchingResultSet) ;
-					
-					
-				}//end introspection
+					fs.matchFunction(sentence, standardFuncMap) ;
+					if(standardFuncMap.isEmpty()){
+						break ;
+					}
+				}
 				
 				//assemble results
 				String jsonRsp = "{\"Functions\":[" ;
