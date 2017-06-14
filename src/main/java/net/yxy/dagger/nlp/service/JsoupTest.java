@@ -15,6 +15,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import net.yxy.dagger.match.service.DataTypeService;
 import net.yxy.dagger.match.service.FunctionService;
 
 public class JsoupTest {
@@ -76,6 +77,34 @@ public class JsoupTest {
 		for (String entry : resultSet){
 			System.out.println(entry);
 		}
+		
+		//init Datatype mapping
+		DataTypeService dtService = new DataTypeService() ;
+//		dtService.addDataTypeMapping("tinyint", "tinyint");
+//		dtService.addDataTypeMapping("smallint", "smallint");
+//		dtService.addDataTypeMapping("integer", "int");
+//		dtService.addDataTypeMapping("bigint", "bigint");
+//		dtService.addDataTypeMapping("boolean", "boolean");
+//		dtService.addDataTypeMapping("float", "float");
+//		dtService.addDataTypeMapping("double", "double");
+//		dtService.addDataTypeMapping("string", "longvarchar");
+//		dtService.addDataTypeMapping("timestamp", "date");
+//		dtService.addDataTypeMapping("decimal", "decimal");
+//		dtService.addDataTypeMapping("varchar", "varchar");
+		
+		dtService.addDataTypeTransformMapping("tinyint", "@tinyint");
+		dtService.addDataTypeTransformMapping("smallint", "@smallint");
+		dtService.addDataTypeTransformMapping("integer", "@integer");
+		dtService.addDataTypeTransformMapping("bigint", "@bigint");
+		dtService.addDataTypeTransformMapping("boolean", "@boolean");
+		dtService.addDataTypeTransformMapping("double", "@double");
+		dtService.addDataTypeTransformMapping("float", "@float");
+		dtService.addDataTypeTransformMapping("real", "@real");
+		dtService.addDataTypeTransformMapping("string", "~string");
+		dtService.addDataTypeTransformMapping("char", "@char");
+		dtService.addDataTypeTransformMapping("timestamp", "@timestamp");
+		dtService.addDataTypeTransformMapping("decimal", "@decimal");
+		dtService.addDataTypeTransformMapping("varchar", "@varchar");
 		
 		
 
