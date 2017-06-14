@@ -22,7 +22,7 @@ public class TokenizeService {
 	
 	public boolean start(){
 		try {
-			tokenModelIn = new FileInputStream(TokenizeService.class.getResource("/en-token.bin").getPath());
+			tokenModelIn = new FileInputStream(TokenizeService.class.getResource("/en-func-token.bin").getPath());
 			tokenModel = new TokenizerModel(tokenModelIn) ;
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -51,7 +51,7 @@ public class TokenizeService {
 
 	public static void main(String[] args) throws FileNotFoundException {
 		InputStream sentModelIn = new FileInputStream(TokenizeService.class.getResource("/en-sent.bin").getPath());
-		InputStream tokenModelIn = new FileInputStream(TokenizeService.class.getResource("/en-token.bin").getPath());
+		InputStream tokenModelIn = new FileInputStream(TokenizeService.class.getResource("/en-func-token.bin").getPath());
 
 		try {
 			
@@ -64,6 +64,7 @@ public class TokenizeService {
 			URL url = new URL("https://www.cloudera.com/documentation/enterprise/latest/topics/impala_datatypes.html");
 			Document doc = Jsoup.parse(url, 3 * 1000);
 			String text = doc.body().text();
+			text = "max_int(decimal(p,s),double a), max_tinyint(), max_smallint(), max_bigint()" ;
 			String sentences[] = sentenceDetector.sentDetect(text);
 			for (String sentence : sentences) {
 				String tokens[] = tokenizer.tokenize(sentence);

@@ -4,7 +4,7 @@ import java.net.URL;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -32,7 +32,7 @@ public class JsoupTest {
 		Map<String, Integer> statistic = new HashMap<String, Integer>() ;
 		
 		FunctionService fs = new FunctionService() ;
-		Map<String, String> standardFuncMap = fs.getStandardFunctionMap() ;
+		final Map<String, String> standardFuncMap = fs.getStandardFunctionMap() ;
 		for (Entry<String, String> entity : standardFuncMap.entrySet()) {
 //			Elements elems = doc.body().getElementsContainingText(entity.getKey()) ;
 			Pattern pattern = Pattern.compile("\\b(?i)"+entity.getKey()+"\\b");
@@ -56,33 +56,25 @@ public class JsoupTest {
 		    }
 		});
 		
-		Map<String, String> resultMap = null ;
-		TokenizeService ts = new TokenizeService() ;
-		ts.start() ;
+		Set<String> resultSet = null ;
 		for (Object tagEntry : tagStatisticArray) {
 			Map.Entry<String, Integer> entry = (Map.Entry<String, Integer>) tagEntry ;
 			Elements elemCandidates = doc.body().getElementsByTag(entry.getKey()) ;//tag name
-			Set<String> materialSet = new HashSet<String>() ;
+			Set<String> materialSet = new LinkedHashSet<String>() ;
 			for(Element elem : elemCandidates){
 				String content = elem.text() ;
-				String[] tokens = ts.getTokens(content) ;
-				for(String token : tokens){
-					if(!materialSet.contains(token)){
-						materialSet.add(token) ;
+					if(!materialSet.contains(content)){
+						materialSet.add(content) ;
 					}
-				}
 			}
 			
-			resultMap = fs.matchFunction(materialSet, standardFuncMap) ;
+			resultSet = fs.matchFunction(materialSet, standardFuncMap) ;
 			
 			break ;// only loop once for now 
 		}
-		ts.close() ;
 
-		for (Entry<String, String> entry : resultMap.entrySet()){
-			if(entry.getValue()!=null){
-				System.out.println(entry.getKey()+"---->"+entry.getValue());
-			}
+		for (String entry : resultSet){
+			System.out.println(entry);
 		}
 		
 		

@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -49,29 +50,32 @@ public class FunctionService {
 	
 	
 	public Map<String, String> getStandardFunctionMap(){
-        return new LinkedHashMap<String, String>(standardFunctionMap) ;
+//        return new LinkedHashMap<String, String>(standardFunctionMap) ;
+        return standardFunctionMap ;
 	}
 	
 
-	public Map<String, String> matchFunction(Set<String> materialSet, Map<String, String> standardFuncMap) {
-		Map<String, String> resultMap = new LinkedHashMap<String, String>() ;
+	public Set<String> matchFunction(Set<String> materialSet, Map<String, String> standardFuncMap) {
+		Set<String> resultSet = new LinkedHashSet<String>() ;
 		
-		for (Entry<String, String> entity : standardFuncMap.entrySet()) {
+		for(Entry<String, String> entity : standardFuncMap.entrySet()) {
 			Pattern pattern = Pattern.compile("\\b(?i)"+entity.getKey()+"\\b");
 			Iterator<String> it = materialSet.iterator();
 			while(it.hasNext()){
 			    String content = it.next();
 			    Matcher m = pattern.matcher(content);
-				if(m.find()){
-					resultMap.put(entity.getKey(), content) ;
-					it.remove();
+				while(m.find()){
+					resultSet.add(content) ;
 				}
 			}
 			
 		}
 		
-		return resultMap ;
+		return resultSet ;
 	}
+	
+	
+	
 	
 	
 	public static void main(String[] args){
