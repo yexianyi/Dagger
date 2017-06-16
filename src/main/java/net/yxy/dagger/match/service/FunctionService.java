@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.math.BigDecimal;
 import java.sql.Blob;
 import java.sql.Clob;
@@ -111,7 +112,21 @@ public class FunctionService {
 	}
 	
 	public void CreateTestSchema(){
-		
+		String sql = "create table alldatatypes(\n" + 
+				"    BIGINT_COL BIGINT,\n" + 
+				"    BOOLEAN_COL BOOLEAN,\n" + 
+				"    CHAR_COL CHAR(1),\n" + 
+				"    DECIMA_COL DECIMAL,\n" + 
+				"    DOUBLE_COL DOUBLE,\n" + 
+				"    FLOAT_COL FLOAT,\n" + 
+				"    INT_COL INT,\n" + 
+				"    REAL_COL REAL,\n" + 
+				"    SMALLINT_COL SMALLINT,\n" + 
+				"    STRING_COL STRING,\n" + 
+				"    TIMESTAMP_COL TIMESTAMP,\n" + 
+				"    TINYINT_COL TINYINT,\n" + 
+				"    VARCHAR_COL VARCHAR\n" + 
+				")" ;
 	}
 	
 	public Map<String, String> testFunction(String funcDefStr, String funcSqlStr){
@@ -120,9 +135,8 @@ public class FunctionService {
 		Matcher m = pattern.matcher(funcDefStr);
 		if(m.find()){
 			String paramStr = m.group() ;
-			paramStr = paramStr.substring(1, paramStr.length()) ;
+			paramStr = paramStr.substring(1, paramStr.length()-1) ;
 			Connection conn = null;
-			PreparedStatement ps ;
 			try {
 				conn = getConnection("jdbc:impala://localhost:21050/", "test", "", "");
 				
@@ -130,6 +144,7 @@ public class FunctionService {
 				e.printStackTrace();
 			}
 			
+			//retrieve datatype list for each function parameter
 			String[] params = paramStr.split(",") ;
 			Map<Integer, List<String>> paramMap = new HashMap<Integer, List<String>>() ;
 			DataTypeService dtService = new DataTypeService() ;
@@ -138,14 +153,25 @@ public class FunctionService {
 				paramMap.put(i, datatypes) ;
 			}
 			
-			List<String[]> paramCombinates = getFuncParamCombinations(paramMap) ;
-			for(int i=paramCombinates.size()-1; i>=0; i--){
-				String[] paramArray = paramCombinates.get(i) ;
-				boolean isSuccess = executeFunction(conn, funcSqlStr, paramArray) ;
+			//generate function param combinations and test them.
+			Map<String[], Boolean> paramCombinates = getFuncParamCombinations(paramMap) ;
+			for(Entry<String[], Boolean> entry : paramCombinates.entrySet()){
+				String[] paramArray = entry.getKey() ;
+				if(executeFunction(conn, funcSqlStr, paramArray)){
+					entry.setValue(true) ;
+				}
+				System.out.println(entry.getKey()[0] + " : " + entry.getValue());
+			}
+			
+			if(conn!=null){
+				try {
+					conn.close();
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
 			}
 			
 		}		
-		
 		
 		 Map<String, String> resultMap = new LinkedHashMap<String, String>() ;
 		 return resultMap ;
@@ -154,39 +180,41 @@ public class FunctionService {
 	
 
 	private boolean executeFunction(Connection conn, String funcSqlStr, String[] paramArray) {
-		String sql = "select " + funcSqlStr + " from test.alldatatypes;" ;
 		PreparedStatement ps = null ;
 		try {
-			ps = conn.prepareStatement(sql);
 			for(int i=0; i<paramArray.length; i++){
 				String paramName = paramArray[i] ;
+				if(paramName.startsWith("~")){
+					return true ;
+				}
+				
 				Object objVal = null ;
 				switch(paramName){
 					case "@bit": 		
-					case "@boolean":	ps.setBoolean(i+1,(boolean) objVal); break;
-					case "@integer": 	ps.setInt(i+1, (int) objVal); break;
-					case "@smallint":	ps.setShort(i+1, (short) objVal); break;
-					case "@tinyint":	ps.setByte(i+1, (byte) objVal); break;
-					case "@bigint":		ps.setLong(i+1, (long) objVal); break;
-					case "@float":		ps.setLong(i+1, (long) objVal); break;
-					case "@real":		ps.setFloat(i+1, (float) objVal); break;
-					case "@double":		ps.setDouble(i+1, (double) objVal); break;
+					case "@boolean":	funcSqlStr = funcSqlStr.replaceFirst("\\?", String.valueOf(Boolean.TRUE)) ; break;
+					case "@integer": 	funcSqlStr = funcSqlStr.replaceFirst("\\?", String.valueOf(Integer.MAX_VALUE)) ; break;
+					case "@smallint":	funcSqlStr = funcSqlStr.replaceFirst("\\?", String.valueOf(Short.MAX_VALUE)) ; break;
+					case "@tinyint":	funcSqlStr = funcSqlStr.replaceFirst("\\?", String.valueOf(Byte.MAX_VALUE)) ; break;
+					case "@bigint":		funcSqlStr = funcSqlStr.replaceFirst("\\?", String.valueOf(Long.MAX_VALUE)) ; break;
+					case "@real":		funcSqlStr = funcSqlStr.replaceFirst("\\?", String.valueOf(Float.MAX_VALUE)) ; break;
+					case "@float":		funcSqlStr = funcSqlStr.replaceFirst("\\?", String.valueOf(Float.MAX_EXPONENT)) ; break;
+					case "@double":		funcSqlStr = funcSqlStr.replaceFirst("\\?", String.valueOf(Double.MAX_VALUE)) ; break;
 					case "@decimal":	
-					case "@numeric":	ps.setBigDecimal(i+1, (BigDecimal) objVal); break;
+					case "@numeric":	funcSqlStr = funcSqlStr.replaceFirst("\\?", String.valueOf(Float.MAX_EXPONENT)) ; break;
 					case "@char":		
 					case "@varchar":	
-					case "@varchar2":	ps.setString(i+1, (String) objVal); break;
 					case "@longvarchar":
+					case "@varchar2":	
 					case "@nchar":		
-					case "@nvarchar":	ps.setNString(i+1,(String) objVal); break;
-					case "@binary":		ps.setBinaryStream(i+1, null); break;
-					case "@varbinary":	ps.setBytes(i+1, (byte[]) objVal); break;
-					case "@date":		ps.setDate(i+1, (Date) objVal); break;
-					case "@time":		ps.setTime(i+1, (Time) objVal); break;
-					case "@timestamp":	ps.setTimestamp(i+1, (Timestamp) objVal); break;
-					case "@clob":		ps.setClob(i+1,(Clob) objVal); break;
-					case "@blob":		ps.setBlob(i+1,(Blob) objVal); break;
-					case "@null":		ps.setNull(i+1,Types.NULL); break;
+					case "@nvarchar":	funcSqlStr = funcSqlStr.replaceFirst("\\?", "testing") ; break;
+					case "@binary":		funcSqlStr = funcSqlStr.replaceFirst("\\?", null) ; break;
+					case "@varbinary":	
+					case "@date":		funcSqlStr = funcSqlStr.replaceFirst("\\?", String.valueOf(new Date(System.currentTimeMillis()))) ; break;
+					case "@time":		funcSqlStr = funcSqlStr.replaceFirst("\\?", String.valueOf(new Time(System.currentTimeMillis()))) ; break;
+					case "@timestamp":	funcSqlStr = funcSqlStr.replaceFirst("\\?", String.valueOf(new Timestamp(System.currentTimeMillis()))) ; break;
+					case "@clob":		
+					case "@blob":		
+					case "@null":		funcSqlStr = funcSqlStr.replaceFirst("\\?", "NULL") ; break;
 					case "@interval_year_to_month":	
 					case "@interval_year":	
 					case "@interval_day":	
@@ -199,13 +227,18 @@ public class FunctionService {
 					case "@interval_hour_to_minute":
 					case "@interval_hour_to_second":	
 					case "@interval_minute_to_second":	break ;
-					case "@xml":		ps.setSQLXML(i+1,(SQLXML) objVal); break;
+					case "@xml":		
 						
-				}
-			}
+				}//end switch
+			}//end for
+			
+			String sql = "select " + funcSqlStr + " from alldatatypes;" ;
+			ps = conn.prepareStatement(sql);
+			return ps.execute() ;
 			
 		} catch (SQLException e) {
 			e.printStackTrace();
+			//ignore all exceptions here, because we only care about if sql could be executed successfully.
 		} finally{
 			if(ps!=null){
 				try {
@@ -220,27 +253,23 @@ public class FunctionService {
 	}
 
 
-	public List<String[]> getFuncParamCombinations(Map<Integer, List<String>> datatypes){
-		List<String[]> combinates = new ArrayList<String[]>() ;
+	public Map<String[], Boolean> getFuncParamCombinations(Map<Integer, List<String>> datatypes){
+		Map<String[], Boolean> combinates = new LinkedHashMap<String[], Boolean>() ;
 		getFuncParamCombinations(datatypes, 0, new String[datatypes.size()], combinates) ;
 		return combinates ;
 	}
 	
-	private void getFuncParamCombinations(Map<Integer, List<String>> datatypes, int currIdx, String[] resArray, List<String[]> resList){
+	private void getFuncParamCombinations(Map<Integer, List<String>> datatypes, int currIdx, String[] resArray, Map<String[], Boolean> resMap){
 		if(currIdx==datatypes.size()){
-//			if(resArray[0].contains("~") || resArray[1].contains("~") || resArray[2].contains("~")){
-//				return ;	
-//			}
-//			System.out.println(resArray[0]+", "+resArray[1]+", "+resArray[2]);
 			String[] combinates = new String[resArray.length] ;
 			System.arraycopy(resArray, 0, combinates, 0, resArray.length) ;
-			resList.add(combinates) ;
+			resMap.put(combinates, false) ;
 			return ;
 		}
 		List<String> datatypeList = datatypes.get(currIdx) ;
 		for(int i=0; i<datatypeList.size(); i++){
 			resArray[currIdx] = datatypeList.get(i) ;
-			getFuncParamCombinations(datatypes, currIdx+1, resArray, resList) ;
+			getFuncParamCombinations(datatypes, currIdx+1, resArray, resMap) ;
 		}
 		
 	}
@@ -248,22 +277,25 @@ public class FunctionService {
 	
 	public static void main(String[] args){
 		FunctionService funcService = new FunctionService() ;
-		DataTypeService dtService = new DataTypeService() ;
-		List<String> datatypesParam1 = dtService.getDataTypesByTag("~number") ;
-		List<String> datatypesParam2 = dtService.getDataTypesByTag("~string") ;
-		List<String> datatypesParam3 = dtService.getDataTypesByTag("~date") ;
+		funcService.testFunction("MAX(~number)", "MAX(?)") ;
 		
-		Map<Integer, List<String>> paramMap = new HashMap<Integer, List<String>>() ;
-		paramMap.put(0, datatypesParam1) ;
-		paramMap.put(1, datatypesParam2) ;
-		paramMap.put(2, datatypesParam3) ;
 		
-		List<String[]> resList = funcService.getFuncParamCombinations(paramMap) ;
 		
-		for(String[] array : resList){
-			System.out.println(array[0]+", "+array[1]+", "+array[2]);
-		}
-		
+//		DataTypeService dtService = new DataTypeService() ;
+//		List<String> datatypesParam1 = dtService.getDataTypesByTag("~number") ;
+//		List<String> datatypesParam2 = dtService.getDataTypesByTag("~string") ;
+//		List<String> datatypesParam3 = dtService.getDataTypesByTag("~date") ;
+//		
+//		Map<Integer, List<String>> paramMap = new HashMap<Integer, List<String>>() ;
+//		paramMap.put(0, datatypesParam1) ;
+//		paramMap.put(1, datatypesParam2) ;
+//		paramMap.put(2, datatypesParam3) ;
+//		
+//		Map<String[], Boolean> resMap = funcService.getFuncParamCombinations(paramMap) ;
+//		
+//		for(String[] array : resMap.keySet()){
+//			System.out.println(array[0]+", "+array[1]+", "+array[2]);
+//		}
 		
 	}
 
