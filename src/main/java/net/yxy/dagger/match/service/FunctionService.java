@@ -4,19 +4,13 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.math.BigDecimal;
-import java.sql.Blob;
-import java.sql.Clob;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.sql.SQLXML;
 import java.sql.Time;
 import java.sql.Timestamp;
-import java.sql.Types;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -111,22 +105,43 @@ public class FunctionService {
 	    return conn;
 	}
 	
-	public void CreateTestSchema(){
-		String sql = "create table alldatatypes(\n" + 
-				"    BIGINT_COL BIGINT,\n" + 
-				"    BOOLEAN_COL BOOLEAN,\n" + 
-				"    CHAR_COL CHAR(1),\n" + 
-				"    DECIMA_COL DECIMAL,\n" + 
-				"    DOUBLE_COL DOUBLE,\n" + 
-				"    FLOAT_COL FLOAT,\n" + 
-				"    INT_COL INT,\n" + 
-				"    REAL_COL REAL,\n" + 
-				"    SMALLINT_COL SMALLINT,\n" + 
-				"    STRING_COL STRING,\n" + 
-				"    TIMESTAMP_COL TIMESTAMP,\n" + 
-				"    TINYINT_COL TINYINT,\n" + 
-				"    VARCHAR_COL VARCHAR\n" + 
-				")" ;
+	public void createTestSchema(List<String> supportedDataTypes){
+		StringBuilder sb = new StringBuilder("create table alldatatypes(") ;
+		
+		for(String datatype : supportedDataTypes){
+			switch(datatype.toUpperCase()){
+				case "TINYINT": sb.append("TINYINT_COL TINYINT,") ; break ;
+				case "SMALLINT": sb.append("SMALLINT_COL SMALLINT,") ; break ;
+				case "INT": sb.append("INT_COL INT,") ; break ;
+				case "BIGINT": sb.append("BIGINT_COL BIGINT,") ; break ;
+				case "REAL": sb.append("REAL_COL REAL,") ; break ;
+				case "FLOAT": sb.append("FLOAT_COL FLOAT,") ; break ;
+				case "DECIMAL": sb.append("DECIMA_COL DECIMAL,") ; break ;
+				case "DOUBLE": sb.append("DOUBLE_COL DOUBLE,") ; break ;
+				case "BOOLEAN": sb.append("BOOLEAN_COL BOOLEAN,") ; break ;
+				case "CHAR": sb.append("CHAR_COL CHAR(1),") ; break ;
+				case "VARCHAR": sb.append("VARCHAR_COL VARCHAR,") ; break ;
+				case "STRING": sb.append("STRING_COL STRING,") ; break ;
+				case "TIMESTAMP": sb.append("TIMESTAMP_COL TIMESTAMP,") ; break ;
+			}
+		}
+		
+		sb.deleteCharAt(sb.length()-1) ;
+		sb.append(")") ;
+		
+		System.out.println(sb.toString()) ;
+		
+		Connection conn = null;
+		try {
+			conn = getConnection("jdbc:impala://localhost:21050/", "test", "", "");
+			PreparedStatement ps = conn.prepareStatement(sb.toString()) ;
+			ps.executeUpdate() ;
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+		
 	}
 	
 	public Map<String, String> testFunction(String funcDefStr, String funcSqlStr){
@@ -275,10 +290,41 @@ public class FunctionService {
 	}
 	
 	
-	public static void main(String[] args){
+	public static void main(String[] args) throws Exception{
 		FunctionService funcService = new FunctionService() ;
-		funcService.testFunction("MAX(~number)", "MAX(?)") ;
+//		funcService.testFunction("MAX(~number)", "MAX(?)") ;
 		
+//		Connection conn = funcService.getConnection("jdbc:impala://localhost:21050/", "test", "", "");
+//		DatabaseMetaData metadata = conn.getMetaData();
+//		ResultSet resultSet = metadata.getTypeInfo();
+//	    while (resultSet.next()) {
+//	      String typeName = resultSet.getString("TYPE_NAME");
+//	      String precision = resultSet.getString("PRECISION"); 
+//	      String maxScale = resultSet.getString("MAXIMUM_SCALE"); 
+//	      String minScale = resultSet.getString("MINIMUM_SCALE"); 
+//	      String numPrecRadix = resultSet.getString("NUM_PREC_RADIX"); 
+//	      System.out.println("Type Name = " + typeName + " | PRECISION="+precision + " | MAXIMUM_SCALE="+maxScale + " | MINIMUM_SCALE=" + minScale + " | NUM_PREC_RADIX="+numPrecRadix);
+//	    }
+//	    resultSet.close();
+//	    conn.close();
+		
+		
+		List<String> supportedDataTypes = new ArrayList<String>() ;
+		supportedDataTypes.add("TINYINT") ;
+		supportedDataTypes.add("SMALLINT") ;
+		supportedDataTypes.add("INT") ;
+		supportedDataTypes.add("BIGINT") ;
+		supportedDataTypes.add("REAL") ;
+		supportedDataTypes.add("FLOAT") ;
+		supportedDataTypes.add("DECIMAL") ;
+		supportedDataTypes.add("DOUBLE") ;
+		supportedDataTypes.add("BOOLEAN") ;
+		supportedDataTypes.add("CHAR") ;
+		supportedDataTypes.add("VARCHAR") ;
+		supportedDataTypes.add("STRING") ;
+		supportedDataTypes.add("TIMESTAMP") ;
+		
+		funcService.createTestSchema(supportedDataTypes) ;
 		
 		
 //		DataTypeService dtService = new DataTypeService() ;
