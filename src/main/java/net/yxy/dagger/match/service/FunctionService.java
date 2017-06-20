@@ -4,14 +4,18 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.Connection;
-import java.sql.Date;
+import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -20,7 +24,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.Random;
 import java.util.Set;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -106,7 +112,30 @@ public class FunctionService {
 	}
 	
 	public void createTestSchema(List<String> supportedDataTypes){
-		StringBuilder sb = new StringBuilder("create table alldatatypes(") ;
+		if(supportedDataTypes==null || supportedDataTypes.size()==0){
+			supportedDataTypes = new ArrayList<String>() ;
+			try {
+				Connection conn = getConnection("jdbc:impala://localhost:21050/", "test", "", "");
+				DatabaseMetaData metadata = conn.getMetaData();
+				ResultSet resultSet = metadata.getTypeInfo();
+				while (resultSet.next()) {
+					String typeName = resultSet.getString("TYPE_NAME");
+					//	      String precision = resultSet.getString("PRECISION"); 
+					//	      String maxScale = resultSet.getString("MAXIMUM_SCALE"); 
+					//	      String minScale = resultSet.getString("MINIMUM_SCALE"); 
+					//	      String numPrecRadix = resultSet.getString("NUM_PREC_RADIX"); 
+					//	      System.out.println("Type Name = " + typeName + " | PRECISION="+precision + " | MAXIMUM_SCALE="+maxScale + " | MINIMUM_SCALE=" + minScale + " | NUM_PREC_RADIX="+numPrecRadix);
+					supportedDataTypes.add(typeName) ;
+				}
+				resultSet.close();
+				conn.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+			
+		}
+		
+		StringBuilder sb = new StringBuilder("CREATE TABLE IF NOT EXISTS alldatatypes(") ;
 		
 		for(String datatype : supportedDataTypes){
 			switch(datatype.toUpperCase()){
@@ -116,29 +145,68 @@ public class FunctionService {
 				case "BIGINT": sb.append("BIGINT_COL BIGINT,") ; break ;
 				case "REAL": sb.append("REAL_COL REAL,") ; break ;
 				case "FLOAT": sb.append("FLOAT_COL FLOAT,") ; break ;
-				case "DECIMAL": sb.append("DECIMA_COL DECIMAL,") ; break ;
+				case "DECIMAL": sb.append("DECIMA_COL DECIMAL(38,38),") ; break ;
 				case "DOUBLE": sb.append("DOUBLE_COL DOUBLE,") ; break ;
 				case "BOOLEAN": sb.append("BOOLEAN_COL BOOLEAN,") ; break ;
 				case "CHAR": sb.append("CHAR_COL CHAR(1),") ; break ;
 				case "VARCHAR": sb.append("VARCHAR_COL VARCHAR,") ; break ;
 				case "STRING": sb.append("STRING_COL STRING,") ; break ;
 				case "TIMESTAMP": sb.append("TIMESTAMP_COL TIMESTAMP,") ; break ;
+				
+				default: sb.append(datatype+"_COL " + datatype + ",") ; break ;
 			}
 		}
 		
 		sb.deleteCharAt(sb.length()-1) ;
 		sb.append(")") ;
 		
-		System.out.println(sb.toString()) ;
+		Random random = new Random(System.currentTimeMillis());
+		StringBuilder sb2 = new StringBuilder("INSERT INTO alldatatypes VALUES(") ;
+		for(String datatype : supportedDataTypes){
+			switch(datatype.toUpperCase()){
+				case "TINYINT": sb2.append(random.nextInt(127)).append(",") ; break ;
+				case "SMALLINT": sb2.append(random.nextInt(32767)).append(",") ; break ;
+				case "INT": sb2.append(random.nextInt(2147483647)).append(",") ; break ;
+				case "BIGINT": sb2.append(random.nextLong()).append(",") ; break ;
+				case "REAL": sb2.append(random.nextFloat()).append(",") ; break ;
+				case "FLOAT": sb2.append(random.nextFloat()).append(",") ; break ;
+				case "DECIMAL": sb2.append(BigDecimal.valueOf(random.nextDouble()).setScale(38, RoundingMode.HALF_UP).doubleValue()).append(",") ; break ;
+				case "DOUBLE": sb2.append(random.nextDouble()).append(",") ; break ;
+				case "BOOLEAN": sb2.append(random.nextBoolean()).append(",") ; break ;
+				case "CHAR": sb2.append("NULL,") ; break ;
+				case "VARCHAR": sb2.append("'").append(UUID.randomUUID()).append("',") ; break ;
+				case "STRING":sb2.append("'").append(UUID.randomUUID()).append("',") ; break ;
+				case "TIMESTAMP": sb2.append("'").append("2017-06-20 15:37:28.633").append("',"); break ;
+			}
+		}
+		
+		sb2.deleteCharAt(sb2.length()-1) ;
+		sb2.append(")") ;
+		
+		System.out.println(sb2.toString()) ;
 		
 		Connection conn = null;
+		PreparedStatement ps = null ;
 		try {
 			conn = getConnection("jdbc:impala://localhost:21050/", "test", "", "");
-			PreparedStatement ps = conn.prepareStatement(sb.toString()) ;
+			ps = conn.prepareStatement(sb.toString()) ;
 			ps.executeUpdate() ;
+			ps.close();
+			
+			ps = conn.prepareStatement(sb2.toString()) ;
+			ps.executeUpdate() ;
+			ps.close();
 			
 		} catch (SQLException e) {
 			e.printStackTrace();
+		} finally{
+			if(conn!=null){
+				try {
+					conn.close();
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}
 		}
 		
 		
@@ -299,32 +367,32 @@ public class FunctionService {
 //		ResultSet resultSet = metadata.getTypeInfo();
 //	    while (resultSet.next()) {
 //	      String typeName = resultSet.getString("TYPE_NAME");
+//	      String createsParams = resultSet.getString("CREATE_PARAMS"); 
 //	      String precision = resultSet.getString("PRECISION"); 
 //	      String maxScale = resultSet.getString("MAXIMUM_SCALE"); 
 //	      String minScale = resultSet.getString("MINIMUM_SCALE"); 
 //	      String numPrecRadix = resultSet.getString("NUM_PREC_RADIX"); 
-//	      System.out.println("Type Name = " + typeName + " | PRECISION="+precision + " | MAXIMUM_SCALE="+maxScale + " | MINIMUM_SCALE=" + minScale + " | NUM_PREC_RADIX="+numPrecRadix);
+//	      System.out.println("Type Name = " + typeName + " | CREATE_PARAMS=" + createsParams +" | PRECISION="+precision + " | MAXIMUM_SCALE="+maxScale + " | MINIMUM_SCALE=" + minScale + " | NUM_PREC_RADIX="+numPrecRadix);
 //	    }
 //	    resultSet.close();
 //	    conn.close();
 		
 		
-		List<String> supportedDataTypes = new ArrayList<String>() ;
-		supportedDataTypes.add("TINYINT") ;
-		supportedDataTypes.add("SMALLINT") ;
-		supportedDataTypes.add("INT") ;
-		supportedDataTypes.add("BIGINT") ;
-		supportedDataTypes.add("REAL") ;
-		supportedDataTypes.add("FLOAT") ;
-		supportedDataTypes.add("DECIMAL") ;
-		supportedDataTypes.add("DOUBLE") ;
-		supportedDataTypes.add("BOOLEAN") ;
-		supportedDataTypes.add("CHAR") ;
-		supportedDataTypes.add("VARCHAR") ;
-		supportedDataTypes.add("STRING") ;
-		supportedDataTypes.add("TIMESTAMP") ;
-		
-		funcService.createTestSchema(supportedDataTypes) ;
+//		List<String> supportedDataTypes = new ArrayList<String>() ;
+//		supportedDataTypes.add("TINYINT") ;
+//		supportedDataTypes.add("SMALLINT") ;
+//		supportedDataTypes.add("INT") ;
+//		supportedDataTypes.add("BIGINT") ;
+//		supportedDataTypes.add("REAL") ;
+//		supportedDataTypes.add("FLOAT") ;
+//		supportedDataTypes.add("DECIMAL") ;
+//		supportedDataTypes.add("DOUBLE") ;
+//		supportedDataTypes.add("BOOLEAN") ;
+//		supportedDataTypes.add("CHAR") ;
+//		supportedDataTypes.add("VARCHAR") ;
+//		supportedDataTypes.add("STRING") ;
+//		supportedDataTypes.add("TIMESTAMP") ;
+//		funcService.createTestSchema(supportedDataTypes) ;
 		
 		
 //		DataTypeService dtService = new DataTypeService() ;
