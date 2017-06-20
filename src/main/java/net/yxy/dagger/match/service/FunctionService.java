@@ -243,7 +243,7 @@ public class FunctionService {
 				if(executeFunction(conn, funcSqlStr, paramArray)){
 					entry.setValue(true) ;
 				}
-				System.out.println(entry.getKey()[0] + " : " + entry.getValue());
+				System.out.println(entry.getKey()[0] + ", "+ entry.getKey()[1]+ " : " + entry.getValue());
 			}
 			
 			if(conn!=null){
@@ -316,11 +316,12 @@ public class FunctionService {
 			}//end for
 			
 			String sql = "select " + funcSqlStr + " from alldatatypes;" ;
+//			System.out.println(sql) ;
 			ps = conn.prepareStatement(sql);
 			return ps.execute() ;
 			
 		} catch (SQLException e) {
-			e.printStackTrace();
+//			e.printStackTrace();
 			//ignore all exceptions here, because we only care about if sql could be executed successfully.
 		} finally{
 			if(ps!=null){
@@ -361,6 +362,8 @@ public class FunctionService {
 	public static void main(String[] args) throws Exception{
 		FunctionService funcService = new FunctionService() ;
 //		funcService.testFunction("MAX(~number)", "MAX(?)") ;
+		funcService.testFunction("POWER(~number,~number)", "POWER(?, ?)") ;
+		
 		
 //		Connection conn = funcService.getConnection("jdbc:impala://localhost:21050/", "test", "", "");
 //		DatabaseMetaData metadata = conn.getMetaData();
