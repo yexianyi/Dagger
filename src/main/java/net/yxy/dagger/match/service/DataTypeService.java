@@ -120,6 +120,36 @@ public class DataTypeService {
 	}
 	
 	
+	public Object getDataTypeMapByTag(String tag){
+		return getDataTypesByTag(tag, dataTypes) ;
+	}
+	
+	private Object getDataTypesByTag(String tag, Map<String, Object> datatypeMap){
+		for (String key : datatypeMap.keySet()) {  
+			Object val = datatypeMap.get(key) ;
+		    if(key.equalsIgnoreCase(tag)){
+		    	return val ;
+		    }else{
+		    	if(val instanceof Map){
+		    		Map<String, Object> subMap = (Map<String, Object>) val ;
+		    		Object res = getDataTypesByTag(tag, subMap) ;
+		    		if(res!=null){
+		    			return res ;
+		    		}
+		    	}
+		    } 
+		  
+		}
+		
+		return null;  
+	}
+	
+	
+	public String getDataTypeStrFrmCombinationByIdx(Map.Entry<String[], Boolean> entry, int idx){
+		String[] argsList = entry.getKey() ;
+		return argsList[idx] ;
+	} 
+	
 	
 	
 	public void addDataTypeMapping(String underlying_dt, String server_dt){
@@ -142,10 +172,8 @@ public class DataTypeService {
 
 	public static void main(String[] args) throws JSONException {
 		DataTypeService dtService = new DataTypeService() ;
-		List<String> res = dtService.getDataTypesByTag("~any");
-		for(String dataType : res){
-			System.out.println(dataType);
-		}
+		Object res = dtService.getDataTypeMapByTag("~number");
+		System.out.println(res.toString());
 		
 	}
 

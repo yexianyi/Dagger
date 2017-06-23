@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.security.Key;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
@@ -212,8 +213,9 @@ public class FunctionService {
 		
 	}
 	
-	public Map<String, String> testFunction(String funcDefStr, String funcSqlStr){
+	public Map<String[], Boolean> testFunction(String funcDefStr, String funcSqlStr){
 		//funcDefStr =  CORR(~number,~string) ;
+		Map<String[], Boolean> paramCombinates = null ;
 		Pattern pattern = Pattern.compile("\\(.*?\\)");
 		Matcher m = pattern.matcher(funcDefStr);
 		if(m.find()){
@@ -237,12 +239,17 @@ public class FunctionService {
 			}
 			
 			//generate function param combinations and test them.
-			Map<String[], Boolean> paramCombinates = getFuncParamCombinations(paramMap) ;
+			//paramCombinates is used for recording testing results for each combination
+			paramCombinates = getFuncParamCombinations(paramMap) ;
 			for(Entry<String[], Boolean> entry : paramCombinates.entrySet()){
 				String[] paramArray = entry.getKey() ;
-				if(executeFunction(conn, funcSqlStr, paramArray)){
-					entry.setValue(true) ;
+				Boolean result = executeFunction(conn, funcSqlStr, paramArray) ;
+				if(result==null){
+					entry.setValue(null) ;
 				}
+				else if(result==true){
+					entry.setValue(true) ;
+				} 
 				System.out.println(entry.getKey()[0] + ", "+ entry.getKey()[1]+ " : " + entry.getValue());
 			}
 			
@@ -256,19 +263,18 @@ public class FunctionService {
 			
 		}		
 		
-		 Map<String, String> resultMap = new LinkedHashMap<String, String>() ;
-		 return resultMap ;
+		 return paramCombinates ;
 		
 	}
 	
 
-	private boolean executeFunction(Connection conn, String funcSqlStr, String[] paramArray) {
+	private Boolean executeFunction(Connection conn, String funcSqlStr, String[] paramArray) {
 		PreparedStatement ps = null ;
 		try {
 			for(int i=0; i<paramArray.length; i++){
 				String paramName = paramArray[i] ;
 				if(paramName.startsWith("~")){
-					return true ;
+					return null ;
 				}
 				
 				Object objVal = null ;
@@ -343,18 +349,57 @@ public class FunctionService {
 		return combinates ;
 	}
 	
-	private void getFuncParamCombinations(Map<Integer, List<String>> datatypes, int currIdx, String[] resArray, Map<String[], Boolean> resMap){
+	private void getFuncParamCombinations(Map<Integer, List<String>> datatypes, int currIdx, String[] resArray, Map<String[], Boolean> resultMap){
 		if(currIdx==datatypes.size()){
-			String[] combinates = new String[resArray.length] ;
-			System.arraycopy(resArray, 0, combinates, 0, resArray.length) ;
-			resMap.put(combinates, false) ;
+			String[] resArrayCopy = new String[resArray.length] ;
+			System.arraycopy(resArray, 0, resArrayCopy, 0, resArray.length) ;
+			resultMap.put(resArrayCopy, false) ;
 			return ;
 		}
 		List<String> datatypeList = datatypes.get(currIdx) ;
 		for(int i=0; i<datatypeList.size(); i++){
 			resArray[currIdx] = datatypeList.get(i) ;
-			getFuncParamCombinations(datatypes, currIdx+1, resArray, resMap) ;
+			getFuncParamCombinations(datatypes, currIdx+1, resArray, resultMap) ;
 		}
+		
+	}
+	
+	public void consolidateResults(Map<String[], Boolean> resultMap){
+		consolidateResults(resultMap, 0, 1) ;
+	}
+	
+	
+	private void consolidateResults(Map<String[], Boolean> resultMap, int start, int currArgIdx){
+		DataTypeService dtService = new DataTypeService() ;
+		List<String[]> resMapKeyList = new ArrayList<String[]>(resultMap.keySet());
+		for(int i = start; i < resMapKeyList.size(); i++) {
+			String dataType = resMapKeyList.get(i)[currArgIdx] ;
+			
+			Object dtChildren = dtService.getDataTypeMapByTag(dataType) ;
+			//retrieve all keys
+			Map<String, Object> subDataTypes = (Map<String, Object>) dtChildren ;
+			Set<String> keys = subDataTypes.keySet();
+			int passCount = 0;
+			for(int j=i+1; j<i+keys.size(); j++){
+				String itemDataTypeStr = resMapKeyList.get(j)[currArgIdx] ;
+				if(itemDataTypeStr.startsWith("~")){//~datatype
+					consolidateResults(resultMap, j, currArgIdx) ;
+				}
+				
+				if(keys.contains(itemDataTypeStr) && resultMap.get(resMapKeyList.get(j))){
+					passCount++ ;
+				}
+			}
+			
+			if(passCount==keys.size()){ //all subTypes' combinations are pass, then escalate to parent level.
+				resultMap.replace(resMapKeyList.get(i), true) ;
+			}else{
+				resultMap.replace(resMapKeyList.get(i), false) ;
+			}
+		}
+			
+//			System.out.println(entry.getKey()[0] + ", "+ entry.getKey()[1]+ " : " + entry.getValue());
+		  
 		
 	}
 	
@@ -362,7 +407,10 @@ public class FunctionService {
 	public static void main(String[] args) throws Exception{
 		FunctionService funcService = new FunctionService() ;
 //		funcService.testFunction("MAX(~number)", "MAX(?)") ;
-		funcService.testFunction("POWER(~number,~number)", "POWER(?, ?)") ;
+//		Map<String[], Boolean> results = funcService.testFunction("POWER(~number,~number)", "POWER(?, ?)") ;
+//		for(Entry<String[], Boolean> entry : results.entrySet()){
+//			System.out.println(entry.getKey()[0] + ", "+ entry.getKey()[1]+ " : " + entry.getValue());
+//		}
 		
 		
 //		Connection conn = funcService.getConnection("jdbc:impala://localhost:21050/", "test", "", "");
@@ -413,6 +461,195 @@ public class FunctionService {
 //		for(String[] array : resMap.keySet()){
 //			System.out.println(array[0]+", "+array[1]+", "+array[2]);
 //		}
+		
+		
+		Map<String[], Boolean> resultMap = new LinkedHashMap<String[], Boolean>(){{
+			put(new String[]{"~number", "~number"} , null);
+			put(new String[]{"~number", "~floating_point"} , null);
+			put(new String[]{"~number", "@numeric"} , null);
+			put(new String[]{"~number", "@real"} , null);
+			put(new String[]{"~number", "@double"} , null);
+			put(new String[]{"~number", "@decimal"} , null);
+			put(new String[]{"~number", "@float"} , null);
+			put(new String[]{"~number", "~whole_number"} , null);
+			put(new String[]{"~number", "@bit"} , null);
+			put(new String[]{"~number", "@smallint"} , null);
+			put(new String[]{"~number", "@integer"} , null);
+			put(new String[]{"~number", "@tinyint"} , null);
+			put(new String[]{"~number", "@bigint"} , null);
+			put(new String[]{"~floating_point", "~number"} , null);
+			put(new String[]{"~floating_point", "~floating_point"} , null);
+			put(new String[]{"~floating_point", "@numeric"} , null);
+			put(new String[]{"~floating_point", "@real"} , null);
+			put(new String[]{"~floating_point", "@double"} , null);
+			put(new String[]{"~floating_point", "@decimal"} , null);
+			put(new String[]{"~floating_point", "@float"} , null);
+			put(new String[]{"~floating_point", "~whole_number"} , null);
+			put(new String[]{"~floating_point", "@bit"} , null);
+			put(new String[]{"~floating_point", "@smallint"} , null);
+			put(new String[]{"~floating_point", "@integer"} , null);
+			put(new String[]{"~floating_point", "@tinyint"} , null);
+			put(new String[]{"~floating_point", "@bigint"} , null);
+			put(new String[]{"@numeric", "~number"} , null);
+			put(new String[]{"@numeric", "~floating_point"} , null);
+			put(new String[]{"@numeric", "@numeric"} , true);
+			put(new String[]{"@numeric", "@real"} , true);
+			put(new String[]{"@numeric", "@double"} , false);
+			put(new String[]{"@numeric", "@decimal"} , true);
+			put(new String[]{"@numeric", "@float"} , true);
+			put(new String[]{"@numeric", "~whole_number"} , null);
+			put(new String[]{"@numeric", "@bit"} , true);
+			put(new String[]{"@numeric", "@smallint"} , true);
+			put(new String[]{"@numeric", "@integer"} , true);
+			put(new String[]{"@numeric", "@tinyint"} , true);
+			put(new String[]{"@numeric", "@bigint"} , true);
+			put(new String[]{"@real", "~number"} , null);
+			put(new String[]{"@real", "~floating_point"} , null);
+			put(new String[]{"@real", "@numeric"} , true);
+			put(new String[]{"@real", "@real"} , true);
+			put(new String[]{"@real", "@double"} , true);
+			put(new String[]{"@real", "@decimal"} , true);
+			put(new String[]{"@real", "@float"} , true);
+			put(new String[]{"@real", "~whole_number"} , null);
+			put(new String[]{"@real", "@bit"} , true);
+			put(new String[]{"@real", "@smallint"} , true);
+			put(new String[]{"@real", "@integer"} , true);
+			put(new String[]{"@real", "@tinyint"} , true);
+			put(new String[]{"@real", "@bigint"} , true);
+			put(new String[]{"@double", "~number"} , null);
+			put(new String[]{"@double", "~floating_point"} , null);
+			put(new String[]{"@double", "@numeric"} , true);
+			put(new String[]{"@double", "@real"} , true);
+			put(new String[]{"@double", "@double"} , true);
+			put(new String[]{"@double", "@decimal"} , true);
+			put(new String[]{"@double", "@float"} , true);
+			put(new String[]{"@double", "~whole_number"} , null);
+			put(new String[]{"@double", "@bit"} , true);
+			put(new String[]{"@double", "@smallint"} , true);
+			put(new String[]{"@double", "@integer"} , true);
+			put(new String[]{"@double", "@tinyint"} , true);
+			put(new String[]{"@double", "@bigint"} , true);
+			put(new String[]{"@decimal", "~number"} , null);
+			put(new String[]{"@decimal", "~floating_point"} , null);
+			put(new String[]{"@decimal", "@numeric"} , true);
+			put(new String[]{"@decimal", "@real"} , true);
+			put(new String[]{"@decimal", "@double"} , true);
+			put(new String[]{"@decimal", "@decimal"} , true);
+			put(new String[]{"@decimal", "@float"} , true);
+			put(new String[]{"@decimal", "~whole_number"} , null);
+			put(new String[]{"@decimal", "@bit"} , true);
+			put(new String[]{"@decimal", "@smallint"} , true);
+			put(new String[]{"@decimal", "@integer"} , true);
+			put(new String[]{"@decimal", "@tinyint"} , true);
+			put(new String[]{"@decimal", "@bigint"} , true);
+			put(new String[]{"@float", "~number"} , null);
+			put(new String[]{"@float", "~floating_point"} , null);
+			put(new String[]{"@float", "@numeric"} , true);
+			put(new String[]{"@float", "@real"} , true);
+			put(new String[]{"@float", "@double"} , true);
+			put(new String[]{"@float", "@decimal"} , true);
+			put(new String[]{"@float", "@float"} , true);
+			put(new String[]{"@float", "~whole_number"} , null);
+			put(new String[]{"@float", "@bit"} , true);
+			put(new String[]{"@float", "@smallint"} , true);
+			put(new String[]{"@float", "@integer"} , true);
+			put(new String[]{"@float", "@tinyint"} , true);
+			put(new String[]{"@float", "@bigint"} , true);
+			put(new String[]{"~whole_number", "~number"} , null);
+			put(new String[]{"~whole_number", "~floating_point"} , null);
+			put(new String[]{"~whole_number", "@numeric"} , null);
+			put(new String[]{"~whole_number", "@real"} , null);
+			put(new String[]{"~whole_number", "@double"} , null);
+			put(new String[]{"~whole_number", "@decimal"} , null);
+			put(new String[]{"~whole_number", "@float"} , null);
+			put(new String[]{"~whole_number", "~whole_number"} , null);
+			put(new String[]{"~whole_number", "@bit"} , null);
+			put(new String[]{"~whole_number", "@smallint"} , null);
+			put(new String[]{"~whole_number", "@integer"} , null);
+			put(new String[]{"~whole_number", "@tinyint"} , null);
+			put(new String[]{"~whole_number", "@bigint"} , null);
+			put(new String[]{"@bit", "~number"} , null);
+			put(new String[]{"@bit", "~floating_point"} , null);
+			put(new String[]{"@bit", "@numeric"} , true);
+			put(new String[]{"@bit", "@real"} , true);
+			put(new String[]{"@bit", "@double"} , true);
+			put(new String[]{"@bit", "@decimal"} , true);
+			put(new String[]{"@bit", "@float"} , true);
+			put(new String[]{"@bit", "~whole_number"} , null);
+			put(new String[]{"@bit", "@bit"} , true);
+			put(new String[]{"@bit", "@smallint"} , true);
+			put(new String[]{"@bit", "@integer"} , true);
+			put(new String[]{"@bit", "@tinyint"} , true);
+			put(new String[]{"@bit", "@bigint"} , true);
+			put(new String[]{"@smallint", "~number"} , null);
+			put(new String[]{"@smallint", "~floating_point"} , null);
+			put(new String[]{"@smallint", "@numeric"} , true);
+			put(new String[]{"@smallint", "@real"} , true);
+			put(new String[]{"@smallint", "@double"} , true);
+			put(new String[]{"@smallint", "@decimal"} , true);
+			put(new String[]{"@smallint", "@float"} , true);
+			put(new String[]{"@smallint", "~whole_number"} , null);
+			put(new String[]{"@smallint", "@bit"} , true);
+			put(new String[]{"@smallint", "@smallint"} , true);
+			put(new String[]{"@smallint", "@integer"} , true);
+			put(new String[]{"@smallint", "@tinyint"} , true);
+			put(new String[]{"@smallint", "@bigint"} , true);
+			put(new String[]{"@integer", "~number"} , null);
+			put(new String[]{"@integer", "~floating_point"} , null);
+			put(new String[]{"@integer", "@numeric"} , true);
+			put(new String[]{"@integer", "@real"} , true);
+			put(new String[]{"@integer", "@double"} , true);
+			put(new String[]{"@integer", "@decimal"} , true);
+			put(new String[]{"@integer", "@float"} , true);
+			put(new String[]{"@integer", "~whole_number"} , null);
+			put(new String[]{"@integer", "@bit"} , true);
+			put(new String[]{"@integer", "@smallint"} , true);
+			put(new String[]{"@integer", "@integer"} , true);
+			put(new String[]{"@integer", "@tinyint"} , true);
+			put(new String[]{"@integer", "@bigint"} , true);
+			put(new String[]{"@tinyint", "~number"} , null);
+			put(new String[]{"@tinyint", "~floating_point"} , null);
+			put(new String[]{"@tinyint", "@numeric"} , true);
+			put(new String[]{"@tinyint", "@real"} , true);
+			put(new String[]{"@tinyint", "@double"} , true);
+			put(new String[]{"@tinyint", "@decimal"} , true);
+			put(new String[]{"@tinyint", "@float"} , true);
+			put(new String[]{"@tinyint", "~whole_number"} , null);
+			put(new String[]{"@tinyint", "@bit"} , true);
+			put(new String[]{"@tinyint", "@smallint"} , true);
+			put(new String[]{"@tinyint", "@integer"} , true);
+			put(new String[]{"@tinyint", "@tinyint"} , true);
+			put(new String[]{"@tinyint", "@bigint"} , true);
+			put(new String[]{"@bigint", "~number"} , null);
+			put(new String[]{"@bigint", "~floating_point"} , null);
+			put(new String[]{"@bigint", "@numeric"} , true);
+			put(new String[]{"@bigint", "@real"} , true);
+			put(new String[]{"@bigint", "@double"} , true);
+			put(new String[]{"@bigint", "@decimal"} , true);
+			put(new String[]{"@bigint", "@float"} , true);
+			put(new String[]{"@bigint", "~whole_number"} , null);
+			put(new String[]{"@bigint", "@bit"} , true);
+			put(new String[]{"@bigint", "@smallint"} , true);
+			put(new String[]{"@bigint", "@integer"} , true);
+			put(new String[]{"@bigint", "@tinyint"} , true);
+			put(new String[]{"@bigint", "@bigint"} , true);
+
+		}};
+		
+		funcService.consolidateResults(resultMap);
+		
+//		Map<String, Integer> map = new LinkedHashMap<String, Integer>(){{
+//			put("a",1);
+//			put("b",2);
+//			put("c",3);
+//			
+//			}} ;
+//		
+//		map.put("b", 4) ;
+			
+		for(Map.Entry<String[], Boolean> entry : resultMap.entrySet()){
+			System.out.println(entry.getKey().toString() + " : " + entry.getValue());
+		}
 		
 	}
 
