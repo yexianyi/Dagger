@@ -363,56 +363,46 @@ public class FunctionService {
 		
 	}
 	
-	public Map<Integer, List<String>> consolidateResults(Map<String[], Boolean> resultMap){
-		Map<Integer, List<String>> res = new HashMap<Integer, List<String>>() ;
-		consolidateResults(resultMap, 0, res) ;
-		return res ;
-	}
 	
 	
-	private void consolidateResults(Map<String[], Boolean> resultMap, int currArgIdx, Map<Integer, List<String>> validDataTypeMap){
+	public Map<Integer, Set<String>> consolidateResults(Map<String[], Boolean> resultMap){
+		Map<Integer, Set<String>> validDatatypeMap = new LinkedHashMap<Integer, Set<String>>() ;
 		DataTypeService dtService = new DataTypeService() ;
 		List<String[]> resMapKeyList = new ArrayList<String[]>(resultMap.keySet());
 		Set<String> supportedDataTypes = new LinkedHashSet<String>() ;
-		for(int i=resMapKeyList.size()-1; i >=0 ; i--) {
-			String[] args = resMapKeyList.get(i) ;
-			String currDataType = args[currArgIdx] ;
-			
-			if(supportedDataTypes.contains(currDataType) || (validDataTypeMap.get(currArgIdx)!=null && validDataTypeMap.get(currArgIdx).contains(currDataType))){
-				continue ;
-			}
-			
-			if(resultMap.get(args)==null || resultMap.get(args)==Boolean.TRUE){ //test result == true
-				if(currDataType.startsWith("~")){//check if all elements in supportedDataTypes Set are qualified to escalate.
-					Set<String> shouldHave = dtService.getChildDataTypeByTag(currDataType) ;
-					if(supportedDataTypes.containsAll(shouldHave)){
-						if(validDataTypeMap.containsKey(currArgIdx)){
-							validDataTypeMap.get(currArgIdx).add(currDataType) ;
-						}else{
-							validDataTypeMap.put(currArgIdx, new ArrayList<String>(){{
-								add(currDataType) ;
-							}}) ;
-						}
-					}else{// one or more datatype is not valid for testing function, then save all supported datatypes into validDataTypeMap
-						if(validDataTypeMap.containsKey(currArgIdx)){
-							validDataTypeMap.get(currArgIdx).addAll(supportedDataTypes);
-						}else{
-							validDataTypeMap.put(currArgIdx, new ArrayList<String>(){{
-								addAll(supportedDataTypes) ;
-							}}) ;
-						}
-					}
-					supportedDataTypes.clear();
-				}
-				else{ //currDataType.startsWith("@")
-					supportedDataTypes.add(currDataType) ;
+		int argLength = resMapKeyList.get(0).length ;
+		for(int currArgIdx=1; currArgIdx<argLength; currArgIdx++){
+			for(int i=resMapKeyList.size()-1; i >=0 ; i--) {
+				String[] args = resMapKeyList.get(i) ;
+				String currDataType = args[currArgIdx] ;
+				
+				if(supportedDataTypes.contains(currDataType)){
+					continue ;
 				}
 				
+				if(resultMap.get(args)==null || resultMap.get(args)==Boolean.TRUE){ //test result == true
+					if(currDataType.startsWith("~")){//check if all elements in supportedDataTypes Set are qualified to escalate.
+						Set<String> shouldHave = dtService.getChildDataTypeByTag(currDataType) ;
+						if(supportedDataTypes.containsAll(shouldHave)){
+							//remove all elements contained in "shouldHave" and add parent datatype "~datatype"
+							supportedDataTypes.removeAll(shouldHave) ;
+							supportedDataTypes.add(currDataType) ;
+							
+						}else{// one or more datatype is not valid for testing function,
+							// retain all elements contained in "supportedDataTypes", because the datatype escalation cannot be performed.
+						}
+					}
+					else{ //currDataType.startsWith("@")
+						supportedDataTypes.add(currDataType) ;
+					}
+				}
 			}
+			
+			validDatatypeMap.put(currArgIdx, new LinkedHashSet<String>(supportedDataTypes)) ;
+			supportedDataTypes.clear(); 
 		}
 			
-//			System.out.println(entry.getKey()[0] + ", "+ entry.getKey()[1]+ " : " + entry.getValue());
-		  
+		 return validDatatypeMap ;
 		
 	}
 	
@@ -649,7 +639,7 @@ public class FunctionService {
 
 		}};
 		
-		Map<Integer, List<String>> res = funcService.consolidateResults(resultMap);
+		Map<Integer, Set<String>> res = funcService.consolidateResults(resultMap);
 		
 //		Map<String, Integer> map = new LinkedHashMap<String, Integer>(){{
 //			put("a",1);
@@ -660,8 +650,8 @@ public class FunctionService {
 //		
 //		map.put("b", 4) ;
 			
-		for(Map.Entry<Integer, List<String>> entry : res.entrySet()){
-			System.out.println(entry.getKey().toString() + " : " + entry.getValue());
+		for(Map.Entry<Integer, Set<String>> entry : res.entrySet()){
+			System.out.println(entry.getKey() + " : " + entry.getValue().toString());
 		}
 		
 	}
