@@ -2,8 +2,11 @@ package net.yxy.dagger.match.service;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.codehaus.jettison.json.JSONException;
 
@@ -18,17 +21,17 @@ public class DataTypeService {
 	}
 	
 	private static void initDataTypes() {
-		dataTypes = new HashMap<String , Object>(){{  
-		     put("~any", new HashMap<String , Object>(){{
-		    	 put("~number", new HashMap<String , Object>(){{
-	    		 		put("~whole_number",new HashMap<String , Object>(){{
+		dataTypes = new LinkedHashMap<String , Object>(){{  
+		     put("~any", new LinkedHashMap<String , Object>(){{
+		    	 put("~number", new LinkedHashMap<String , Object>(){{
+	    		 		put("~whole_number",new LinkedHashMap<String , Object>(){{
 	    		 				put("@bit", "@bit") ;
 	    		 				put("@integer", "@integer") ;
 	    		 				put("@smallint", "@smallint") ;
 	    		 				put("@tinyint", "@tinyint") ;
 	    		 				put("@bigint", "@bigint") ;
 	    		 		}}) ;
-	    		 		put("~floating_point",new HashMap<String , Object>(){{
+	    		 		put("~floating_point",new LinkedHashMap<String , Object>(){{
 			 				put("@float", "@float") ;
 			 				put("@real", "@real") ;
 			 				put("@double", "@double") ;
@@ -36,7 +39,7 @@ public class DataTypeService {
 			 				put("@numeric", "@numeric") ;
 			 		}}) ;
 		    	 }});
-		    	 put("~string", new HashMap<String , Object>(){{
+		    	 put("~string", new LinkedHashMap<String , Object>(){{
 		    		 	put("@char","@char");
 		    		 	put("@varchar","@varchar");
 		    		 	put("@longvarchar","@longvarchar");
@@ -44,27 +47,27 @@ public class DataTypeService {
 		    		 	put("@varchar2","@varchar2");
 		    		 	put("@nvarchar","@nvarchar");
 		    	 }});
-		    	 put("~binary", new HashMap<String , Object>(){{
+		    	 put("~binary", new LinkedHashMap<String , Object>(){{
 		    		 	put("@binary","@binary");
 		    		 	put("@varbinary","@varbinary");
 		    	 }});
-		    	 put("~date", new HashMap<String , Object>(){{
+		    	 put("~date", new LinkedHashMap<String , Object>(){{
 		    		 	put("@date","@date");
 		    		 	put("@time","@time");
 		    		 	put("@timestamp","@timestamp");
 		    	 }});
-		    	 put("~lob", new HashMap<String , Object>(){{
+		    	 put("~lob", new LinkedHashMap<String , Object>(){{
 		    		 	put("@clob","@clob");
 		    		 	put("@blob","@blob");
 		    	 }});
 		    	 put("@boolean", "@boolean");
 		    	 put("@null", "@null");
-		    	 put("~interval_year", new HashMap<String , Object>(){{
+		    	 put("~interval_year", new LinkedHashMap<String , Object>(){{
 		    		 	put("@interval_year_to_month","@interval_year_to_month");
 		    		 	put("@interval_year","@interval_year");
 		    		 	put("@interval_month","@interval_month");
 		    	 }});
-		    	 put("~interval_day", new HashMap<String , Object>(){{
+		    	 put("~interval_day", new LinkedHashMap<String , Object>(){{
 		    		 	put("@interval_day","@interval_day");
 		    		 	put("@interval_hour","@interval_hour");
 		    		 	put("@interval_minute","@interval_minute");
@@ -145,6 +148,33 @@ public class DataTypeService {
 	}
 	
 	
+	
+	public Set<String> getChildDataTypeByTag(String tag){
+		Set<String> set = new HashSet<String>() ;
+		getChildDataTypeByTag(tag, dataTypes, set) ;
+		return set ;
+	}
+	
+	private void getChildDataTypeByTag(String tag, Map<String, Object> datatypeMap, Set<String> resultSet){
+		for (String key : datatypeMap.keySet()) {  
+			if(key.equalsIgnoreCase(tag)){
+				if(datatypeMap.get(key) instanceof Map){
+					resultSet.addAll(((Map<String, Object>)datatypeMap.get(key)).keySet()) ;
+				}
+				return ;
+			}else{
+				if(datatypeMap.get(key) instanceof Map){
+					getChildDataTypeByTag(tag, (Map<String, Object>) datatypeMap.get(key), resultSet) ;
+				}
+			}
+		  
+		}
+		
+	}
+	
+	
+	
+	
 	public String getDataTypeStrFrmCombinationByIdx(Map.Entry<String[], Boolean> entry, int idx){
 		String[] argsList = entry.getKey() ;
 		return argsList[idx] ;
@@ -172,7 +202,8 @@ public class DataTypeService {
 
 	public static void main(String[] args) throws JSONException {
 		DataTypeService dtService = new DataTypeService() ;
-		Object res = dtService.getDataTypeMapByTag("~number");
+//		Object res = dtService.getDataTypeMapByTag("~number");
+		Set<String> res = dtService.getChildDataTypeByTag("~any") ;
 		System.out.println(res.toString());
 		
 	}

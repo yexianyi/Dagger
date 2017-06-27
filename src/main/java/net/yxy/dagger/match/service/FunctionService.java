@@ -6,7 +6,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.security.Key;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
@@ -364,37 +363,51 @@ public class FunctionService {
 		
 	}
 	
-	public void consolidateResults(Map<String[], Boolean> resultMap){
-		consolidateResults(resultMap, 0, 1) ;
+	public Map<Integer, List<String>> consolidateResults(Map<String[], Boolean> resultMap){
+		Map<Integer, List<String>> res = new HashMap<Integer, List<String>>() ;
+		consolidateResults(resultMap, 0, res) ;
+		return res ;
 	}
 	
 	
-	private void consolidateResults(Map<String[], Boolean> resultMap, int start, int currArgIdx){
+	private void consolidateResults(Map<String[], Boolean> resultMap, int currArgIdx, Map<Integer, List<String>> validDataTypeMap){
 		DataTypeService dtService = new DataTypeService() ;
 		List<String[]> resMapKeyList = new ArrayList<String[]>(resultMap.keySet());
-		for(int i = start; i < resMapKeyList.size(); i++) {
-			String dataType = resMapKeyList.get(i)[currArgIdx] ;
+		Set<String> supportedDataTypes = new LinkedHashSet<String>() ;
+		for(int i=resMapKeyList.size()-1; i >=0 ; i--) {
+			String[] args = resMapKeyList.get(i) ;
+			String currDataType = args[currArgIdx] ;
 			
-			Object dtChildren = dtService.getDataTypeMapByTag(dataType) ;
-			//retrieve all keys
-			Map<String, Object> subDataTypes = (Map<String, Object>) dtChildren ;
-			Set<String> keys = subDataTypes.keySet();
-			int passCount = 0;
-			for(int j=i+1; j<i+keys.size(); j++){
-				String itemDataTypeStr = resMapKeyList.get(j)[currArgIdx] ;
-				if(itemDataTypeStr.startsWith("~")){//~datatype
-					consolidateResults(resultMap, j, currArgIdx) ;
-				}
-				
-				if(keys.contains(itemDataTypeStr) && resultMap.get(resMapKeyList.get(j))){
-					passCount++ ;
-				}
+			if(supportedDataTypes.contains(currDataType) || (validDataTypeMap.get(currArgIdx)!=null && validDataTypeMap.get(currArgIdx).contains(currDataType))){
+				continue ;
 			}
 			
-			if(passCount==keys.size()){ //all subTypes' combinations are pass, then escalate to parent level.
-				resultMap.replace(resMapKeyList.get(i), true) ;
-			}else{
-				resultMap.replace(resMapKeyList.get(i), false) ;
+			if(resultMap.get(args)==null || resultMap.get(args)==Boolean.TRUE){ //test result == true
+				if(currDataType.startsWith("~")){//check if all elements in supportedDataTypes Set are qualified to escalate.
+					Set<String> shouldHave = dtService.getChildDataTypeByTag(currDataType) ;
+					if(supportedDataTypes.containsAll(shouldHave)){
+						if(validDataTypeMap.containsKey(currArgIdx)){
+							validDataTypeMap.get(currArgIdx).add(currDataType) ;
+						}else{
+							validDataTypeMap.put(currArgIdx, new ArrayList<String>(){{
+								add(currDataType) ;
+							}}) ;
+						}
+					}else{// one or more datatype is not valid for testing function, then save all supported datatypes into validDataTypeMap
+						if(validDataTypeMap.containsKey(currArgIdx)){
+							validDataTypeMap.get(currArgIdx).addAll(supportedDataTypes);
+						}else{
+							validDataTypeMap.put(currArgIdx, new ArrayList<String>(){{
+								addAll(supportedDataTypes) ;
+							}}) ;
+						}
+					}
+					supportedDataTypes.clear();
+				}
+				else{ //currDataType.startsWith("@")
+					supportedDataTypes.add(currDataType) ;
+				}
+				
 			}
 		}
 			
@@ -636,7 +649,7 @@ public class FunctionService {
 
 		}};
 		
-		funcService.consolidateResults(resultMap);
+		Map<Integer, List<String>> res = funcService.consolidateResults(resultMap);
 		
 //		Map<String, Integer> map = new LinkedHashMap<String, Integer>(){{
 //			put("a",1);
@@ -647,7 +660,7 @@ public class FunctionService {
 //		
 //		map.put("b", 4) ;
 			
-		for(Map.Entry<String[], Boolean> entry : resultMap.entrySet()){
+		for(Map.Entry<Integer, List<String>> entry : res.entrySet()){
 			System.out.println(entry.getKey().toString() + " : " + entry.getValue());
 		}
 		
