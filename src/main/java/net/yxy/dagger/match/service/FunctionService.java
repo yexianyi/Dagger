@@ -432,6 +432,39 @@ public class FunctionService {
 	}
 	
 	
+	public void filterResults(Map<String[], Boolean> resultMap){
+		DataTypeService dtService = new DataTypeService() ;
+		List<String[]> resMapKeyList = new ArrayList<String[]>(resultMap.keySet());
+		int argLength = resMapKeyList.get(0).length ;
+		
+		Set<String> removeSet = new HashSet<String>() ;
+		for(int currArgIdx=argLength-1; currArgIdx>=0; currArgIdx--){
+			removeSet.clear();
+			Iterator<Map.Entry<String[], Boolean>> iter = resultMap.entrySet().iterator();
+			while (iter.hasNext()) {
+			    Map.Entry<String[], Boolean> entry = iter.next();
+			    if(entry.getValue()==Boolean.FALSE){
+			    	iter.remove();
+			    	continue;
+			    }else{ //Boolean.TRUE
+			    	String currDataType = entry.getKey()[currArgIdx] ;
+			    	if(removeSet.contains(currDataType)){
+			    		removeSet.remove(currDataType);
+			    		iter.remove();
+			    		continue ;
+			    	}
+			    	
+			    	if(currDataType.startsWith("~")){ //all of its children element should be removed.
+			    		removeSet.addAll(dtService.getDataTypesByTag(currDataType)) ;
+			    	}
+			    	
+			    }
+			    
+			}
+		}
+		
+	}
+	
 	public static void main(String[] args) throws Exception{
 		FunctionService funcService = new FunctionService() ;
 //		funcService.testFunction("MAX(~number)", "MAX(?)") ;
@@ -665,6 +698,8 @@ public class FunctionService {
 		}};
 		
 		funcService.consolidateResults(resultMap);
+		funcService.filterResults(resultMap);
+		
 		for(Entry<String[], Boolean> entry : resultMap.entrySet()){
 			System.out.println(entry.getKey()[0] + ", " + entry.getKey()[1] + " : " + entry.getValue());
 		}
