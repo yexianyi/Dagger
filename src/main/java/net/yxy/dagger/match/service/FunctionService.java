@@ -17,6 +17,7 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -26,6 +27,7 @@ import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Random;
 import java.util.Set;
+import java.util.Stack;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -364,45 +366,68 @@ public class FunctionService {
 	}
 	
 	
-	
-	public Map<Integer, Set<String>> consolidateResults(Map<String[], Boolean> resultMap){
-		Map<Integer, Set<String>> validDatatypeMap = new LinkedHashMap<Integer, Set<String>>() ;
+	/**
+	 * 	{"@bigint", "~whole_number"} , null
+		{"@bigint", "@bit"} , true
+		{"@bigint", "@smallint"} , true
+		{"@bigint", "@integer"} , true
+		{"@bigint", "@tinyint"} , true
+		{"@bigint", "@bigint"} , true
+	 * @param resultMap
+	 * @return
+	 */
+	public void consolidateResults(Map<String[], Boolean> resultMap){
 		DataTypeService dtService = new DataTypeService() ;
 		List<String[]> resMapKeyList = new ArrayList<String[]>(resultMap.keySet());
-		Set<String> supportedDataTypes = new LinkedHashSet<String>() ;
 		int argLength = resMapKeyList.get(0).length ;
-		for(int currArgIdx=1; currArgIdx<argLength; currArgIdx++){
-			for(int i=resMapKeyList.size()-1; i >=0 ; i--) {
-				String[] args = resMapKeyList.get(i) ;
-				String currDataType = args[currArgIdx] ;
-				
-				if(supportedDataTypes.contains(currDataType)){
-					continue ;
-				}
-				
-				if(resultMap.get(args)==null || resultMap.get(args)==Boolean.TRUE){ //test result == true
-					if(currDataType.startsWith("~")){//check if all elements in supportedDataTypes Set are qualified to escalate.
-						Set<String> shouldHave = dtService.getChildDataTypeByTag(currDataType) ;
-						if(supportedDataTypes.containsAll(shouldHave)){
-							//remove all elements contained in "shouldHave" and add parent datatype "~datatype"
-							supportedDataTypes.removeAll(shouldHave) ;
-							supportedDataTypes.add(currDataType) ;
-							
-						}else{// one or more datatype is not valid for testing function,
-							// retain all elements contained in "supportedDataTypes", because the datatype escalation cannot be performed.
+		
+		Map<String, String[]> tempMap = new HashMap<String, String[]>() ;
+		for(int currArgIdx=argLength-1; currArgIdx>=0; currArgIdx--){
+				for(int i=resMapKeyList.size()-1; i >=0 ; i--) {
+					String[] key = resMapKeyList.get(i) ;
+					String currDataType = key[currArgIdx] ;
+					
+					Boolean result = resultMap.get(key) ;
+					if(result == Boolean.TRUE){
+						tempMap.put(currDataType, key) ;
+					}
+					
+					if(result == Boolean.FALSE){
+						if(tempMap.containsKey(currDataType)){
+							tempMap.remove(currDataType) ;
 						}
 					}
-					else{ //currDataType.startsWith("@")
-						supportedDataTypes.add(currDataType) ;
+					
+					if(currDataType.startsWith("~")){
+						//
+						// handle the case: 
+						// 	~whole_number, @smallint : null
+						//	~whole_number, @integer : null
+						//	~whole_number, @tinyint : null
+						//	~whole_number, @bigint : true
+						//
+						if(currDataType.equalsIgnoreCase(resMapKeyList.get(i+1)[currArgIdx])){
+							resultMap.put(key, resultMap.get(resMapKeyList.get(i+1))) ;
+							continue ;
+						}
+						
+						Set<String> children = dtService.getChildDataTypeByTag(currDataType) ;
+						if(tempMap.keySet().containsAll(children)){	//all of child are pass -> mark parent testing result as TRUE.
+							resultMap.put(key, true) ;
+							tempMap.put(currDataType, key) ;
+						}else{	//one or more child are fail -> mark parent testing result as FALSE.
+							resultMap.put(key, false) ;
+							tempMap.remove(currDataType) ;
+						}
+						
+						//remove items which has been used from cache set
+						for(String itemKey : children){
+							tempMap.remove(itemKey);
+						}
 					}
+					
 				}
-			}
-			
-			validDatatypeMap.put(currArgIdx, new LinkedHashSet<String>(supportedDataTypes)) ;
-			supportedDataTypes.clear(); 
 		}
-			
-		 return validDatatypeMap ;
 		
 	}
 	
@@ -496,7 +521,7 @@ public class FunctionService {
 			put(new String[]{"@numeric", "~number"} , null);
 			put(new String[]{"@numeric", "~floating_point"} , null);
 			put(new String[]{"@numeric", "@numeric"} , true);
-			put(new String[]{"@numeric", "@real"} , true);
+			put(new String[]{"@numeric", "@real"} , false);
 			put(new String[]{"@numeric", "@double"} , false);
 			put(new String[]{"@numeric", "@decimal"} , true);
 			put(new String[]{"@numeric", "@float"} , true);
@@ -639,7 +664,10 @@ public class FunctionService {
 
 		}};
 		
-		Map<Integer, Set<String>> res = funcService.consolidateResults(resultMap);
+		funcService.consolidateResults(resultMap);
+		for(Entry<String[], Boolean> entry : resultMap.entrySet()){
+			System.out.println(entry.getKey()[0] + ", " + entry.getKey()[1] + " : " + entry.getValue());
+		}
 		
 //		Map<String, Integer> map = new LinkedHashMap<String, Integer>(){{
 //			put("a",1);
@@ -647,12 +675,14 @@ public class FunctionService {
 //			put("c",3);
 //			
 //			}} ;
-//		
-//		map.put("b", 4) ;
+//			
+//			Set<String> set = new HashSet<String>() ;
+//			set.add("a") ;
+//			set.add("b") ;
+//			
+//			System.out.println(map.keySet().containsAll(set));
 			
-		for(Map.Entry<Integer, Set<String>> entry : res.entrySet()){
-			System.out.println(entry.getKey() + " : " + entry.getValue().toString());
-		}
+			
 		
 	}
 

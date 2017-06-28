@@ -173,6 +173,30 @@ public class DataTypeService {
 	}
 	
 	
+	public String getParentDataTypeByTag(String tag){
+		List<String> resultSet = new ArrayList<String>() ;
+		getParentDataTypeByTag(tag, dataTypes, "~any", resultSet) ;
+		return resultSet.size()>0 ? resultSet.get(0) : null ;
+	}
+	
+	private boolean getParentDataTypeByTag(String tag, Map<String, Object> datatypeMap, String parent, List<String> resultSet){
+		for (String key : datatypeMap.keySet()) {  
+			if(key.equalsIgnoreCase(tag)){
+				resultSet.add(parent) ;
+				return true;
+			}else{
+				if(datatypeMap.get(key) instanceof Map){
+					if(getParentDataTypeByTag(tag, (Map<String, Object>) datatypeMap.get(key), key, resultSet)){
+						return true ;
+					}
+				}
+			}
+		  
+		}
+		
+		return false ;
+		
+	}
 	
 	
 	public String getDataTypeStrFrmCombinationByIdx(Map.Entry<String[], Boolean> entry, int idx){
@@ -203,8 +227,8 @@ public class DataTypeService {
 	public static void main(String[] args) throws JSONException {
 		DataTypeService dtService = new DataTypeService() ;
 //		Object res = dtService.getDataTypeMapByTag("~number");
-		Set<String> res = dtService.getChildDataTypeByTag("~any") ;
-		System.out.println(res.toString());
+		String res = dtService.getParentDataTypeByTag("@integer") ;
+		System.out.println(res);
 		
 	}
 
