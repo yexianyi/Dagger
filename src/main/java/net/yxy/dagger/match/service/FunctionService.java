@@ -8,7 +8,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -24,21 +23,23 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Properties;
 import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import net.yxy.dagger.db.service.DBService;
+
 public class FunctionService {
 
-	private static Map<String, String> standardFunctionMap = new LinkedHashMap<String, String>()  ;
+	private DBService dbService = new DBService("jdbc:impala://localhost:21050/", "test", "", "") ;
+//	private static Map<String, String> standardFunctionMap = new LinkedHashMap<String, String>()  ;
 	private static Map<String, String> funcMappings = new LinkedHashMap<String, String>()  ;
 	
 	
 	static{
-		loadFile(standardFunctionMap, "/functionEntities") ;
+//		loadFile(standardFunctionMap, "/functionEntities") ;
 		loadFile(funcMappings, "/FunctionMappings") ;
 	}
 	
@@ -75,9 +76,9 @@ public class FunctionService {
 	}
 	
 	
+	@Deprecated
 	public Map<String, String> getStandardFunctionMap(){
-//        return new LinkedHashMap<String, String>(standardFunctionMap) ;
-        return standardFunctionMap ;
+        return null ;
 	}
 	
 
@@ -100,23 +101,13 @@ public class FunctionService {
 		return resultSet ;
 	}
 	
-	private Connection getConnection(String dbUrl, String dbName, String userName, String password) throws SQLException {
-
-	    Connection conn = null;
-	    Properties connectionProps = new Properties();
-	    connectionProps.put("user",userName);
-	    connectionProps.put("password", password);
-
-        conn = DriverManager.getConnection(dbUrl, connectionProps);
-	    System.out.println("Connected to database");
-	    return conn;
-	}
 	
 	public void createTestSchema(List<String> supportedDataTypes){
 		if(supportedDataTypes==null || supportedDataTypes.size()==0){
 			supportedDataTypes = new ArrayList<String>() ;
 			try {
-				Connection conn = getConnection("jdbc:impala://localhost:21050/", "test", "", "");
+				DBService dbService = new DBService("jdbc:impala://localhost:21050/", "test", "", "") ;
+				Connection conn = dbService.getConnection();
 				DatabaseMetaData metadata = conn.getMetaData();
 				ResultSet resultSet = metadata.getTypeInfo();
 				while (resultSet.next()) {
@@ -189,7 +180,7 @@ public class FunctionService {
 		Connection conn = null;
 		PreparedStatement ps = null ;
 		try {
-			conn = getConnection("jdbc:impala://localhost:21050/", "test", "", "");
+			conn = dbService.getConnection();
 			ps = conn.prepareStatement(sb.toString()) ;
 			ps.executeUpdate() ;
 			ps.close();
@@ -223,7 +214,7 @@ public class FunctionService {
 			paramStr = paramStr.substring(1, paramStr.length()-1) ;
 			Connection conn = null;
 			try {
-				conn = getConnection("jdbc:impala://localhost:21050/", "test", "", "");
+				conn = dbService.getConnection();
 				
 			} catch (SQLException e) {
 				e.printStackTrace();
@@ -497,7 +488,7 @@ public class FunctionService {
 	public static void main(String[] args) throws Exception{
 		FunctionService funcService = new FunctionService() ;
 //		funcService.testFunction("MAX(~number)", "MAX(?)") ;
-//		Map<String[], Boolean> results = funcService.testFunction("POWER(~number,~number)", "POWER(?, ?)") ;
+		Map<String[], Boolean> results = funcService.testFunction("POWER(~number,~number)", "POWER(?, ?)") ;
 //		for(Entry<String[], Boolean> entry : results.entrySet()){
 //			System.out.println(entry.getKey()[0] + ", "+ entry.getKey()[1]+ " : " + entry.getValue());
 //		}
