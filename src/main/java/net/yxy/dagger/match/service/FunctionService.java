@@ -27,7 +27,6 @@ import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Random;
 import java.util.Set;
-import java.util.Stack;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -465,6 +464,36 @@ public class FunctionService {
 		
 	}
 	
+	public List<String> generateFuncMapping(String funcName, Map<String[], Boolean> resultMap){
+		List<String> functionMappingList = new ArrayList<String>() ;
+		List<String[]> resMapKeyList = new ArrayList<String[]>(resultMap.keySet());
+		int argLength = resMapKeyList.get(0).length ;
+		
+		for(String[] list : resMapKeyList){
+			String funcMapping = funcName + "(" ;
+			for(int i=0; i<list.length ; i++){
+				funcMapping += list[i] ;
+				if(i<list.length-1){
+					funcMapping += ", " ;
+				}
+			}
+			
+			funcMapping += "): " + funcName + "(" ;
+			
+			for(int i=0; i<argLength; i++){
+				funcMapping += "$"+ (i+1) ;
+				if(i<argLength-1){
+					funcMapping += ", " ;
+				}
+			}
+			funcMapping += ")" ;
+			
+			functionMappingList.add(funcMapping) ;
+		}
+		
+		return functionMappingList ;
+	}
+	
 	public static void main(String[] args) throws Exception{
 		FunctionService funcService = new FunctionService() ;
 //		funcService.testFunction("MAX(~number)", "MAX(?)") ;
@@ -699,10 +728,11 @@ public class FunctionService {
 		
 		funcService.consolidateResults(resultMap);
 		funcService.filterResults(resultMap);
+//		for(Entry<String[], Boolean> entry : resultMap.entrySet()){
+//			System.out.println(entry.getKey()[0] + ", " + entry.getKey()[1] + " : " + entry.getValue());
+//		}
 		
-		for(Entry<String[], Boolean> entry : resultMap.entrySet()){
-			System.out.println(entry.getKey()[0] + ", " + entry.getKey()[1] + " : " + entry.getValue());
-		}
+		
 		
 //		Map<String, Integer> map = new LinkedHashMap<String, Integer>(){{
 //			put("a",1);
@@ -717,8 +747,10 @@ public class FunctionService {
 //			
 //			System.out.println(map.keySet().containsAll(set));
 			
-			
-		
+		List<String> funcMappings = funcService.generateFuncMapping("count", resultMap) ;
+		for(String funcMapping : funcMappings){
+			System.out.println(funcMapping);
+		}
 	}
 
 
