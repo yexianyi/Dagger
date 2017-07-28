@@ -18,20 +18,31 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class JdbcDriverService {
-
-	private Path path ;
-	private URL[] jarUrls ;
 	
-	public Path uploadDriver(File file){
-		//TODO:upload file into somewhere and get the url info
-		path = Paths.get("/Users/xianyiye/Documents/Third-Parts/Cloudera_ImpalaJDBC41_2.5.36") ;
-		return path ;
+	private String path ;
+	private String className ;
+	private String url ;
+	private String username ;
+	private String password ;
+	
+	public JdbcDriverService(String path, String className, String url, String username, String password){
+		this.path = path ;
+		this.className = className ;
+		this.url = url ;
+		this.username = username ;
+		this.password = password ;
 	}
 	
-	public URL[] getJDBCJarFiles(Path path){
-		if(jarUrls==null){
+//	public Path uploadDriver(File file){
+//		//TODO:upload file into somewhere and get the url info
+//		path = Paths.get("/Users/xianyiye/Documents/Third-Parts/Cloudera_ImpalaJDBC41_2.5.36") ;
+//		return path ;
+//	}
+	
+	private URL[] getJDBCJarFiles(String path){
+		Path dirPath = Paths.get("/Users/xianyiye/Documents/Third-Parts/Cloudera_ImpalaJDBC41_2.5.36") ;
 			List<URL> urls = new ArrayList<URL>() ;
-			try (final DirectoryStream<Path> stream = Files.newDirectoryStream(path, "*.jar")) {
+			try (final DirectoryStream<Path> stream = Files.newDirectoryStream(dirPath, "*.jar")) {
 				    stream.forEach(
 				    		jarFile -> {
 								try {
@@ -43,14 +54,13 @@ public class JdbcDriverService {
 			} catch (IOException e1) {
 				e1.printStackTrace();
 			} finally{
-				jarUrls = urls.toArray(new URL[urls.size()]) ;
+				
 			}
-		}
 		
-		return jarUrls ;
+		return urls.toArray(new URL[urls.size()]) ; 
 	}
 	
-	public void registerDriver(String className){
+	private void registerDriver(String className, URL[] jarUrls){
 		URLClassLoader ucl = new URLClassLoader(jarUrls);
 		try {
 			Driver d = (Driver)Class.forName(className, true, ucl).newInstance();
@@ -61,17 +71,17 @@ public class JdbcDriverService {
 		
 	}
 	
-	public Connection createConnection(String url, String username, String password) throws SQLException{
+	public Connection createConnection() throws SQLException{
+		URL[] jarFiles = getJDBCJarFiles(path) ;
+		registerDriver(className, jarFiles) ;
 		return DriverManager.getConnection(url, username, password);
 	}
 	
 	
 	public static void main(String[] args) throws Exception {
-		JdbcDriverService jdbcDriverService = new JdbcDriverService() ;
-		Path path = jdbcDriverService.uploadDriver(null) ;
-		jdbcDriverService.getJDBCJarFiles(path) ;
-		jdbcDriverService.registerDriver("com.cloudera.impala.jdbc41.Driver");
-		Connection conn = jdbcDriverService.createConnection("jdbc:impala://172.23.5.144:21050/default", "", "") ;
+		JdbcDriverService jdbcDriverService = new JdbcDriverService("/Users/xianyiye/Documents/Third-Parts/Cloudera_ImpalaJDBC41_2.5.36", 
+				"com.cloudera.impala.jdbc41.Driver", "jdbc:impala://172.23.5.144:21050/default", "", "") ;
+		Connection conn = jdbcDriverService.createConnection() ;
 		
 		String sql = "select * from bt_string" ;
 		Statement stmt = conn.createStatement() ;

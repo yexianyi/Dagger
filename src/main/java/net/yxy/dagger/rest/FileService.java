@@ -17,7 +17,9 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
-import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
+import org.glassfish.jersey.media.multipart.BodyPart;
+import org.glassfish.jersey.media.multipart.ContentDisposition;
+import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
@@ -32,12 +34,12 @@ import org.glassfish.jersey.media.multipart.file.FileDataBodyPart;
  * @author javatutorial.net
  */
 @Path("/service/files")
-public class FileUploadService {
+public class FileService {
 
 	/** The path to the folder where we want to store the uploaded files */
-	private static final String UPLOAD_FOLDER = "/Users/xianyiye/Downloads/upload/";
+	private static final String UPLOAD_FOLDER = FileService.class.getProtectionDomain().getCodeSource().getLocation().getPath() + File.separator + "Resources" + File.separator + "jdbc_drivers" + File.separator;
 
-	public FileUploadService() {
+	public FileService() {
 	}
 
 	@Context
@@ -53,32 +55,38 @@ public class FileUploadService {
 	@POST
 	@Path("/upload")
 	@Consumes(MediaType.MULTIPART_FORM_DATA)
-	public Response uploadFile(
-			@FormDataParam("file") InputStream uploadedInputStream,
-			@FormDataParam("file") FormDataContentDisposition fileDetail) {
-
-		// check if all form parameters are provided
-		if (uploadedInputStream == null || fileDetail == null)
-			return Response.status(400).entity("Invalid form data").build();
-
+	public Response uploadFile(@FormDataParam("jdbcName") String jdbcName, @FormDataParam("file") FormDataBodyPart body) {
+		
 		// create our destination folder, if it not exists
+		String uploadedFileLocation = UPLOAD_FOLDER + File.separator + jdbcName + File.separator ;
 		try {
-			createFolderIfNotExists(UPLOAD_FOLDER);
+			createFolderIfNotExists(uploadedFileLocation);
 		} catch (SecurityException se) {
 			return Response.status(500)
 					.entity("Can not create destination folder on server")
 					.build();
 		}
+		
+		//upload files
+		for(BodyPart part : body.getParent().getBodyParts()){
+	        InputStream uploadedInputStream = part.getEntityAs(InputStream.class);
+	        ContentDisposition fileDetail = part.getContentDisposition();
+	        // check if all form parameters are provided
+			if (uploadedInputStream == null || fileDetail == null)
+				return Response.status(400).entity("Invalid form data").build();
 
-		String uploadedFileLocation = UPLOAD_FOLDER + fileDetail.getFileName();
-		try {
-			saveToFile(uploadedInputStream, uploadedFileLocation);
-		} catch (IOException e) {
-			return Response.status(500).entity("Can not save file").build();
-		}
+			uploadedFileLocation =  uploadedFileLocation + fileDetail.getFileName();
+			try {
+				saveToFile(uploadedInputStream, uploadedFileLocation);
+			} catch (IOException e) {
+				e.printStackTrace();
+				return Response.status(500).entity("Can not save file").build();
+			}
+	    }
+		
 
 		return Response.status(200)
-				.entity("File saved to " + uploadedFileLocation).build();
+				.entity("File saved to " + UPLOAD_FOLDER).build();
 	}
 
 	/**
@@ -115,10 +123,9 @@ public class FileUploadService {
 			throws SecurityException {
 		File theDir = new File(dirName);
 		if (!theDir.exists()) {
-			theDir.mkdir();
+			theDir.mkdirs();
 		}
 		
-		System.out.println(theDir.getPath()) ;
 	}
 	
 	public static void main(String[] args) throws IOException 

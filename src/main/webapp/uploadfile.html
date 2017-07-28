@@ -11,9 +11,22 @@
 		action="/dagger/api/service/files/upload"
 		method="post" 
 		enctype="multipart/form-data"  accept-charset="UTF-8">
+		<input name="jdbcName" id="jdbcName" type="text" /><br>
 		<input name="file" id="filename" type="file" /><br>
 		<br>
+		<input name="file" id="filename2" type="file" /><br>
+		<br>
+		<input name="file" id="filename3" type="file" /><br>
+		<br>
 		<button name="submit" type="submit">Upload</button>
+	</form>
+	<p/>
+	<form action="/dagger/api/service/files/upload"
+		method="post" 
+		enctype="multipart/form-data"  accept-charset="UTF-8">
+	  JDBC Name: <input name="jdbcName" id="jdbcName" type="text" /><br>
+	  Library Jars: <input name="file" type="file"  multiple>
+	  <input type="submit">
 	</form>
 </body>
 </html>

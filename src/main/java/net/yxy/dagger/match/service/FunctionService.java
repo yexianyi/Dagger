@@ -29,11 +29,12 @@ import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import net.yxy.dagger.db.service.DBService;
+import net.yxy.dagger.jdbc.service.JdbcDriverService;
 
 public class FunctionService {
 
-	private DBService dbService = new DBService("jdbc:impala://localhost:21050/", "test", "", "") ;
+	private JdbcDriverService jdbcService = new JdbcDriverService("/Users/xianyiye/Documents/Third-Parts/Cloudera_ImpalaJDBC41_2.5.36", 
+			"com.cloudera.impala.jdbc41.Driver", "jdbc:impala://172.23.5.144:21050/default", "", "") ;
 //	private static Map<String, String> standardFunctionMap = new LinkedHashMap<String, String>()  ;
 	private static Map<String, String> funcMappings = new LinkedHashMap<String, String>()  ;
 	
@@ -106,8 +107,7 @@ public class FunctionService {
 		if(supportedDataTypes==null || supportedDataTypes.size()==0){
 			supportedDataTypes = new ArrayList<String>() ;
 			try {
-				DBService dbService = new DBService("jdbc:impala://localhost:21050/", "test", "", "") ;
-				Connection conn = dbService.getConnection();
+				Connection conn = jdbcService.createConnection();
 				DatabaseMetaData metadata = conn.getMetaData();
 				ResultSet resultSet = metadata.getTypeInfo();
 				while (resultSet.next()) {
@@ -180,7 +180,7 @@ public class FunctionService {
 		Connection conn = null;
 		PreparedStatement ps = null ;
 		try {
-			conn = dbService.getConnection();
+			conn = jdbcService.createConnection();
 			ps = conn.prepareStatement(sb.toString()) ;
 			ps.executeUpdate() ;
 			ps.close();
@@ -214,7 +214,7 @@ public class FunctionService {
 			paramStr = paramStr.substring(1, paramStr.length()-1) ;
 			Connection conn = null;
 			try {
-				conn = dbService.getConnection();
+				conn = jdbcService.createConnection();
 				
 			} catch (SQLException e) {
 				e.printStackTrace();
