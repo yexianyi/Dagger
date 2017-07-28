@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Upload JDBC Driver</title>
+</head>
+<body>
+	Choose file to upload
+	<br>
+	<form
+		action="/dagger/api/service/files/upload"
+		method="post" 
+		enctype="multipart/form-data"  accept-charset="UTF-8">
+		<input name="file" id="filename" type="file" /><br>
+		<br>
+		<button name="submit" type="submit">Upload</button>
+	</form>
+</body>
+</html>

@@ -7,4 +7,5 @@ public class RestApplication extends ResourceConfig {
 	     // add rest service packages
 	     packages("net.yxy.dagger.rest");
 	 }
+	 
 }

@@ -35,7 +35,7 @@ public class DatatypeServiceApi {
 	
 	@POST
     @Path("/scan")
-	@Consumes(MediaType.APPLICATION_JSON)
+	@Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
 	public Response scanDatatypes(String jsonReq) {
 		Response.ResponseBuilder response = null ;
