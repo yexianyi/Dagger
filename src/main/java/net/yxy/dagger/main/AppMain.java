@@ -39,7 +39,7 @@ public class AppMain {
        // Create a basic jetty server object without declaring the port. Since
        // we are configuring connectors directly we'll be setting ports on
        // those connectors.
-		Server server = new Server(8080);
+		Server server = new Server(8888);
 		
 		HttpConfiguration https = new HttpConfiguration();
 	    https.addCustomizer(new SecureRequestCustomizer());

@@ -71,13 +71,17 @@ public class FileService {
 		for(BodyPart part : body.getParent().getBodyParts()){
 	        InputStream uploadedInputStream = part.getEntityAs(InputStream.class);
 	        ContentDisposition fileDetail = part.getContentDisposition();
+	        if(fileDetail.getFileName()==null){
+	        	continue ;
+	        }
 	        // check if all form parameters are provided
 			if (uploadedInputStream == null || fileDetail == null)
 				return Response.status(400).entity("Invalid form data").build();
 
-			uploadedFileLocation =  uploadedFileLocation + fileDetail.getFileName();
+			String filePath = uploadedFileLocation + fileDetail.getFileName();
+			System.out.println(filePath);
 			try {
-				saveToFile(uploadedInputStream, uploadedFileLocation);
+				saveToFile(uploadedInputStream, filePath);
 			} catch (IOException e) {
 				e.printStackTrace();
 				return Response.status(500).entity("Can not save file").build();
