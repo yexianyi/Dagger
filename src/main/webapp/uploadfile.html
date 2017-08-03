@@ -1,19 +1,63 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
-<title>Upload JDBC Driver</title>
+    <meta charset="UTF-8">
+    <title>Fluid FileBox - jQuery EasyUI Demo</title>
+    <link rel="stylesheet" type="text/css" href="css/themes/default/easyui.css">
+    <link rel="stylesheet" type="text/css" href="css/theme.css">
+	<link rel="stylesheet" type="text/css" href="css/themes/icon.css">
+	<link rel="stylesheet" type="text/css" href="css/demo.css">
+	<link rel="stylesheet" type="text/css" href="css/vis.css">
+   	<script type="text/javascript" src="js/jquery.min.js"></script>
+	<script type="text/javascript" src="js/jquery.easyui.min.js"></script>
 </head>
 <body>
-	Choose file to upload
-	<br>
-
-	<form action="/dagger/api/service/files/upload"
+    <h2>Datasource Adapter Automatic Detector</h2>
+    <p>This example shows how to set the width of FileBox to a percentage of its parent container.</p>
+    <div style="margin:20px 0;"></div>
+    <form id="jdbcDrvCfgForm"
+    	action="/dagger/api/service/files/upload"
 		method="post" 
 		enctype="multipart/form-data"  accept-charset="UTF-8">
+	    <div style="margin-bottom:20px">
+	    	<input class="easyui-textbox" name="jdbcName" style="width:20%" data-options="label:'JDBC Name:',required:true">
+	    </div>
+	    <div style="margin-bottom:20px">
+	        <input class="easyui-filebox" name="file" label="JDBC Driver:" data-options="required:true" labelPosition="left" style="width:20%" multiple>
+	    </div>
+	    <div style="margin-bottom:20px">
+	    	<input class="easyui-textbox" name="jdbcCls" style="width:20%" data-options="label:'JDBC Class:',required:true">
+	    </div>
+	    <div style="margin-bottom:20px">
+	    	<input class="easyui-textbox" name="jdbcUrl" style="width:20%" data-options="label:'JDBC URL:',required:true">
+	    </div>
+	    <div style="margin-bottom:20px">
+	    	<input class="easyui-textbox" name="jdbcUserName" style="width:20%" data-options="label:'Username:',required:true">
+	    </div>
+	    <div style="margin-bottom:20px">
+	    	<input class="easyui-passwordbox" name="jdbcPwd" style="width:20%" data-options="label:'Password:',required:true">
+	    </div>
+	    
+	   	<div style="margin-bottom:20px">
+	       	<a href="javascript:void(0)" class="easyui-linkbutton" onclick="testConnection()" style="width:80px">Test</a>
+	   	</div>
+    </form>
+    <!-- 
+   
 	  JDBC Name: <input name="jdbcName" id="jdbcName" type="text" /><br>
 	  Library Jars: <input name="file" type="file"  multiple>
 	  <input type="submit">
-	</form>
+	
+	 -->
+	
+	<script>
+        function testConnection(){
+            $('#jdbcDrvCfgForm').form('submit');
+        }
+        function clearForm(){
+            $('#ff').form('clear');
+        }
+    </script>
+	
 </body>
 </html>

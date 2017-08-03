@@ -19,7 +19,15 @@
  */
 package net.yxy.dagger.global;
 
+import java.io.File;
+
+import net.yxy.dagger.rest.FileService;
+
 public final class Constants {
+	
+	/** The path to the folder where we want to store the uploaded files */
+	public static final String UPLOAD_FOLDER = FileService.class.getProtectionDomain().getCodeSource().getLocation().getPath() + File.separator + "Resources" + File.separator + "jdbc_drivers" + File.separator;
+
 	
 	public static final int SYN_INTERVAL = 5000 ;
 	public static final int REFRESH_INTERVAL_MILISEC = 3000 ;

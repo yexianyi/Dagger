@@ -25,6 +25,8 @@ import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.media.multipart.file.FileDataBodyPart;
 
+import net.yxy.dagger.global.Constants;
+
 /**
  * This example shows how to build Java REST web-service to upload files
  * accepting POST requests with encoding type "multipart/form-data". For more
@@ -36,9 +38,7 @@ import org.glassfish.jersey.media.multipart.file.FileDataBodyPart;
 @Path("/service/files")
 public class FileService {
 
-	/** The path to the folder where we want to store the uploaded files */
-	private static final String UPLOAD_FOLDER = FileService.class.getProtectionDomain().getCodeSource().getLocation().getPath() + File.separator + "Resources" + File.separator + "jdbc_drivers" + File.separator;
-
+	
 	public FileService() {
 	}
 
@@ -58,7 +58,7 @@ public class FileService {
 	public Response uploadFile(@FormDataParam("jdbcName") String jdbcName, @FormDataParam("file") FormDataBodyPart body) {
 		
 		// create our destination folder, if it not exists
-		String uploadedFileLocation = UPLOAD_FOLDER + File.separator + jdbcName + File.separator ;
+		String uploadedFileLocation = Constants.UPLOAD_FOLDER + File.separator + jdbcName + File.separator ;
 		try {
 			createFolderIfNotExists(uploadedFileLocation);
 		} catch (SecurityException se) {
@@ -79,7 +79,6 @@ public class FileService {
 				return Response.status(400).entity("Invalid form data").build();
 
 			String filePath = uploadedFileLocation + fileDetail.getFileName();
-			System.out.println(filePath);
 			try {
 				saveToFile(uploadedInputStream, filePath);
 			} catch (IOException e) {
@@ -90,7 +89,7 @@ public class FileService {
 		
 
 		return Response.status(200)
-				.entity("File saved to " + UPLOAD_FOLDER).build();
+				.entity("File saved to " + Constants.UPLOAD_FOLDER).build();
 	}
 
 	/**
