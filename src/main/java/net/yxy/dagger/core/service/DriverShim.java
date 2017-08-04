@@ -1,4 +1,4 @@
-package net.yxy.dagger.jdbc.service;
+package net.yxy.dagger.core.service;
 
 import java.sql.Connection;
 import java.sql.Driver;

@@ -15,10 +15,7 @@
     <h2>Datasource Adapter Automatic Detector</h2>
     <p>This example shows how to set the width of FileBox to a percentage of its parent container.</p>
     <div style="margin:20px 0;"></div>
-    <form id="jdbcDrvCfgForm"
-    	action="/dagger/api/service/files/upload"
-		method="post" 
-		enctype="multipart/form-data"  accept-charset="UTF-8">
+    <form id="jdbcDrvCfgForm">
 	    <div style="margin-bottom:20px">
 	    	<input class="easyui-textbox" name="jdbcName" style="width:20%" data-options="label:'JDBC Name:',required:true">
 	    </div>
@@ -52,10 +49,24 @@
 	
 	<script>
         function testConnection(){
-            $('#jdbcDrvCfgForm').form('submit');
-        }
-        function clearForm(){
-            $('#ff').form('clear');
+        	
+        	var data = new FormData($('#jdbcDrvCfgForm')[0]);
+            $.ajax({ 
+            	url: '/dagger/api/service/jdbc/uploadAndTest',
+           	    data: data,
+           	    cache: false,
+           	    contentType: false,
+           	    processData: false,
+           	    type: 'POST',
+	            success: function(response){        
+	            	var jsonRsp = jQuery.parseJSON(JSON.stringify(response));
+	            	alert(jsonRsp) ;
+	            	
+	            },
+		         error: function (msg, url, line) {
+		             alert('msg = ' + msg.toString() + ', url = ' + url + ', line = ' + line);
+		         }
+	        }); 
         }
     </script>
 	

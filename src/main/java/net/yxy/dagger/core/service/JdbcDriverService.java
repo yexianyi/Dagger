@@ -1,6 +1,5 @@
-package net.yxy.dagger.jdbc.service;
+package net.yxy.dagger.core.service;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -39,24 +38,24 @@ public class JdbcDriverService {
 //		return path ;
 //	}
 	
-	private URL[] getJDBCJarFiles(String path){
-		Path dirPath = Paths.get("/Users/xianyiye/Documents/Third-Parts/Cloudera_ImpalaJDBC41_2.5.36") ;
-			List<URL> urls = new ArrayList<URL>() ;
-			try (final DirectoryStream<Path> stream = Files.newDirectoryStream(dirPath, "*.jar")) {
-				    stream.forEach(
-				    		jarFile -> {
-								try {
-									urls.add(new URL("jar:file:"+jarFile+"!/")) ;
-								} catch (Exception e) {
-									e.printStackTrace();
-								}
-				    });
-			} catch (IOException e1) {
-				e1.printStackTrace();
-			} finally{
-				
-			}
-		
+	private URL[] getJDBCJarFiles(){
+		Path dirPath = Paths.get(path) ;
+		List<URL> urls = new ArrayList<URL>() ;
+		try (final DirectoryStream<Path> stream = Files.newDirectoryStream(dirPath, "*.jar")) {
+			    stream.forEach(
+			    		jarFile -> {
+							try {
+								urls.add(new URL("jar:file:"+jarFile+"!/")) ;
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
+			    });
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		} finally{
+			
+		}
+	
 		return urls.toArray(new URL[urls.size()]) ; 
 	}
 	
@@ -72,7 +71,7 @@ public class JdbcDriverService {
 	}
 	
 	public Connection createConnection() throws SQLException{
-		URL[] jarFiles = getJDBCJarFiles(path) ;
+		URL[] jarFiles = getJDBCJarFiles() ;
 		registerDriver(className, jarFiles) ;
 		return DriverManager.getConnection(url, username, password);
 	}

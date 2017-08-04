@@ -29,7 +29,7 @@ import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import net.yxy.dagger.jdbc.service.JdbcDriverService;
+import net.yxy.dagger.core.service.JdbcDriverService;
 
 public class FunctionService {
 
