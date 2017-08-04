@@ -37,15 +37,10 @@
 	    
 	   	<div style="margin-bottom:20px">
 	       	<a href="javascript:void(0)" class="easyui-linkbutton" onclick="testConnection()" style="width:80px">Test</a>
+	       	<span id="testConnResult"></span>
 	   	</div>
     </form>
-    <!-- 
    
-	  JDBC Name: <input name="jdbcName" id="jdbcName" type="text" /><br>
-	  Library Jars: <input name="file" type="file"  multiple>
-	  <input type="submit">
-	
-	 -->
 	
 	<script>
         function testConnection(){
@@ -59,13 +54,15 @@
            	    processData: false,
            	    type: 'POST',
 	            success: function(response){        
-	            	var jsonRsp = jQuery.parseJSON(JSON.stringify(response));
-	            	alert(jsonRsp) ;
+	            	//var jsonRsp = jQuery.parseJSON(JSON.stringify(response));
+	            	//alert(jsonRsp) ;
+	            	$("#testConnResult").text(response);
 	            	
 	            },
-		         error: function (msg, url, line) {
-		             alert('msg = ' + msg.toString() + ', url = ' + url + ', line = ' + line);
-		         }
+				error: function (msg, url, line) {
+				    //alert('msg = ' + msg.toString() + ', url = ' + url + ', line = ' + line);
+					$("#testConnResult").text(msg.responseText);
+				}
 	        }); 
         }
     </script>
