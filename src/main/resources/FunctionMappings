@@ -1062,16 +1062,16 @@ ADD_MONTHS(~string,@null): ADD_MONTHS(?, ?)
 ADD_MONTHS(@null,~whole_number): ADD_MONTHS(?, ?)
 ADD_MONTHS(@null,~string): ADD_MONTHS(?, ?)
 ADD_MONTHS(@null,@null): ADD_MONTHS(?, ?)
-@timestampATTIMEZONE~string: ? AT TIME ZONE ?
-@timestampATTIMEZONE@null: ? AT TIME ZONE ?
-@dateATTIMEZONE~string: ? AT TIME ZONE ?
-@dateATTIMEZONE@null: ? AT TIME ZONE ?
-@timeATTIMEZONE~string: ? AT TIME ZONE ?
-@timeATTIMEZONE@null: ? AT TIME ZONE ?
-~stringATTIMEZONE~string: ? AT TIME ZONE ?
-~stringATTIMEZONE@null: ? AT TIME ZONE ?
-@nullATTIMEZONE~string: ? AT TIME ZONE ?
-@nullATTIMEZONE@null: ? AT TIME ZONE ?
+#@timestampATTIMEZONE~string: ? AT TIME ZONE ?
+#@timestampATTIMEZONE@null: ? AT TIME ZONE ?
+#@dateATTIMEZONE~string: ? AT TIME ZONE ?
+#@dateATTIMEZONE@null: ? AT TIME ZONE ?
+#@timeATTIMEZONE~string: ? AT TIME ZONE ?
+#timeATTIMEZONE@null: ? AT TIME ZONE ?
+#~stringATTIMEZONE~string: ? AT TIME ZONE ?
+#~stringATTIMEZONE@null: ? AT TIME ZONE ?
+#@nullATTIMEZONE~string: ? AT TIME ZONE ?
+#@nullATTIMEZONE@null: ? AT TIME ZONE ?
 CLOCK_TIMESTAMP(): CLOCK_TIMESTAMP()
 CURRENT_DATE(): CURRENT_DATE()
 CURRENT_DATE(~number): CURRENT_DATE(?)
@@ -1567,7 +1567,7 @@ ROUND(~number,@null): ROUND(?, ?)
 ROUND(~string,@null): ROUND(?, ?)
 ROUND(~date,@null): ROUND(?, ?)
 ROUND(@null,@null): ROUND(?, ?)
-ROWNUM: ROWNUM
+#ROWNUM: ROWNUM
 SIGN(~number): SIGN(?)
 SIGN(~string): SIGN(?)
 SIGN(~interval_day): SIGN(?)

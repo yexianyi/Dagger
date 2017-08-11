@@ -28,6 +28,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import net.yxy.dagger.core.service.JdbcDriverService;
 
@@ -77,10 +78,25 @@ public class FunctionService {
 	}
 	
 	
-	@Deprecated
-	public Map<String, String> getStandardFunctionMap(){
-        return null ;
+	public Set<String> getStandardFuncNameMap(){
+		Set<String> resultSet = new LinkedHashSet<String>() ;
+		funcMappings.forEach((k,v)->{
+			resultSet.add(getFuncNameFrmSignature(k)) ;
+		});
+		
+        return resultSet ;
 	}
+	
+	public String getFuncNameFrmSignature(String funcSignature){
+		return funcSignature.substring(0, funcSignature.indexOf('(')) ;
+	}
+	
+	
+	public Map<String, String> getAllFuncSignatureMap(){
+        return funcMappings ;
+	}
+	
+	
 	
 
 	public Set<String> matchFunction(Set<String> materialSet, Map<String, String> standardFuncMap) {
@@ -204,14 +220,21 @@ public class FunctionService {
 		
 	}
 	
-	public Map<String[], Boolean> testFunction(String funcDefStr, String funcSqlStr){
-		//funcDefStr =  CORR(~number,~string) ;
-		Map<String[], Boolean> paramCombinates = null ;
+	public String[] getFuncParams(String funcDefStr){
 		Pattern pattern = Pattern.compile("\\(.*?\\)");
 		Matcher m = pattern.matcher(funcDefStr);
 		if(m.find()){
 			String paramStr = m.group() ;
 			paramStr = paramStr.substring(1, paramStr.length()-1) ;
+			//retrieve datatype list for each function parameter
+			return paramStr.split(",") ;
+		}
+		
+		return null;
+	}
+	
+	public Map<String[], Boolean> testFunction(String funcDefStr, String funcSqlStr){
+		//funcDefStr =  CORR(~number,~string) ;
 			Connection conn = null;
 			try {
 				conn = jdbcService.createConnection();
@@ -221,7 +244,7 @@ public class FunctionService {
 			}
 			
 			//retrieve datatype list for each function parameter
-			String[] params = paramStr.split(",") ;
+			String[] params = getFuncParams(funcDefStr) ;
 			Map<Integer, List<String>> paramMap = new HashMap<Integer, List<String>>() ;
 			DataTypeService dtService = new DataTypeService() ;
 			for(int i=0; i<params.length; i++){
@@ -231,7 +254,7 @@ public class FunctionService {
 			
 			//generate function param combinations and test them.
 			//paramCombinates is used for recording testing results for each combination
-			paramCombinates = getFuncParamCombinations(paramMap) ;
+			Map<String[], Boolean> paramCombinates = getFuncParamCombinations(paramMap) ;
 			for(Entry<String[], Boolean> entry : paramCombinates.entrySet()){
 				String[] paramArray = entry.getKey() ;
 				Boolean result = executeFunction(conn, funcSqlStr, paramArray) ;
@@ -252,7 +275,6 @@ public class FunctionService {
 				}
 			}
 			
-		}		
 		
 		 return paramCombinates ;
 		
@@ -487,8 +509,10 @@ public class FunctionService {
 	
 	public static void main(String[] args) throws Exception{
 		FunctionService funcService = new FunctionService() ;
-//		funcService.testFunction("MAX(~number)", "MAX(?)") ;
-		Map<String[], Boolean> results = funcService.testFunction("POWER(~number,~number)", "POWER(?, ?)") ;
+//		funcService.testFunction("MAX(~number)", "MAX(?)") 
+//		funcService.getStandardFunctionMap() .forEach((k,v)->System.out.println(k+ ":" + v));
+		
+//		Map<String[], Boolean> results = funcService.testFunction("POWER(~number,~number)", "POWER(?, ?)") ;
 //		for(Entry<String[], Boolean> entry : results.entrySet()){
 //			System.out.println(entry.getKey()[0] + ", "+ entry.getKey()[1]+ " : " + entry.getValue());
 //		}
@@ -717,8 +741,8 @@ public class FunctionService {
 
 		}};
 		
-		funcService.consolidateResults(resultMap);
-		funcService.filterResults(resultMap);
+//		funcService.consolidateResults(resultMap);
+//		funcService.filterResults(resultMap);
 //		for(Entry<String[], Boolean> entry : resultMap.entrySet()){
 //			System.out.println(entry.getKey()[0] + ", " + entry.getKey()[1] + " : " + entry.getValue());
 //		}
@@ -738,10 +762,12 @@ public class FunctionService {
 //			
 //			System.out.println(map.keySet().containsAll(set));
 			
-		List<String> funcMappings = funcService.generateFuncMapping("count", resultMap) ;
+		List<String> funcMappings = funcService.generateFuncMapping("avg", resultMap) ;
 		for(String funcMapping : funcMappings){
 			System.out.println(funcMapping);
 		}
+		
+//		funcService.getStandardFuncNameMap() .forEach(p->System.out.println(p));
 	}
 
 

@@ -3,13 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <title>Fluid FileBox - jQuery EasyUI Demo</title>
-    <link rel="stylesheet" type="text/css" href="css/themes/default/easyui.css">
-    <link rel="stylesheet" type="text/css" href="css/theme.css">
 	<link rel="stylesheet" type="text/css" href="css/themes/icon.css">
 	<link rel="stylesheet" type="text/css" href="css/demo.css">
-	<link rel="stylesheet" type="text/css" href="css/vis.css">
+	<link rel="stylesheet" type="text/css" href="css/theme.css">
+	<link rel="stylesheet" type="text/css" href="css/themes/default/easyui.css">
+	
    	<script type="text/javascript" src="js/jquery.min.js"></script>
 	<script type="text/javascript" src="js/jquery.easyui.min.js"></script>
+	
 </head>
 <body>
     <h2>Datasource Adapter Automatic Detector</h2>
@@ -40,9 +41,36 @@
 	       	<span id="testConnResult"></span>
 	   	</div>
     </form>
-   
+
+   	<div style="margin:20px 0;"></div>
+   	<div style="margin-bottom:20px">
+       	<a href="javascript:void(0)" class="easyui-linkbutton" onclick="loadFunctions()" style="width:120px">Load Func</a>
+       	<a href="javascript:void(0)" class="easyui-linkbutton" onclick="testFunctions()" style="width:120px">Start Test</a>
+   	</div>
+    <table title="Function Testing Report" id="function_treegrid" class="easyui-treegrid" style="width:700px;height:500px"
+            data-options="rownumbers: true, idField: 'id', treeField: 'name' ">
+        <thead>
+            <tr>
+                <th data-options="field:'name'" width="50%" align="left">Name</th>
+                <th data-options="field:'result'" width="50%" align="center">Result</th>
+            </tr>
+        </thead>
+    </table>
 	
 	<script>
+		function loadFunctions(){
+			$.get('api/service/functions/getAll',function(data){
+				  $('#function_treegrid').treegrid('loadData',data.functions);
+				},'json');
+		}
+		
+		function startFunctions(){
+			$.get('api/service/functions/getAll',function(data){
+				  $('#function_treegrid').treegrid('loadData',data.functions);
+				},'json');
+		}
+	
+	
         function testConnection(){
         	
         	var data = new FormData($('#jdbcDrvCfgForm')[0]);

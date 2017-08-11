@@ -1,22 +1,16 @@
 package net.yxy.dagger.rest;
 
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.POST;
+import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.CacheControl;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.slf4j.Logger;
@@ -24,71 +18,63 @@ import org.slf4j.LoggerFactory;
 
 import net.yxy.dagger.global.Constants;
 import net.yxy.dagger.match.service.FunctionService;
-import net.yxy.dagger.nlp.service.NameFinderService;
-import net.yxy.dagger.nlp.service.SentenceDetectorService;
-import net.yxy.dagger.nlp.service.TokenizeService;
-import net.yxy.dagger.util.JSONUtil;
 
 @Path("/service/functions")
 public class FunctionServiceApi {
 	static private Logger logger = LoggerFactory.getLogger(FunctionServiceApi.class);  
+	private FunctionService funcService = new FunctionService() ;
 	
-	
-	@POST
-    @Path("/scan")
-	@Consumes(MediaType.APPLICATION_JSON)
+	@GET
+    @Path("/getAll")
     @Produces(MediaType.APPLICATION_JSON)
-	public Response scanDatatypes(String jsonReq) {
+	public Response getAllFuncMappings() {
 		Response.ResponseBuilder response = null ;
-		Map<String, JSONObject> resMap = new HashMap<String, JSONObject>() ;
+		JSONObject funcsObj = new JSONObject() ;	
 		try {
-			SentenceDetectorService sds = new SentenceDetectorService() ;
-			TokenizeService ts = new TokenizeService() ;
-			NameFinderService nfs = new NameFinderService() ;
-			
-			if(sds.start() && ts.start() && nfs.start()){
-				JSONObject jsonObj = new JSONObject(jsonReq) ;
-				String url = JSONUtil.findAttribute(jsonObj, "url") ;
-				
-				FunctionService fs = new FunctionService() ;
-				Map<String, String> standardFuncMap= fs.getStandardFunctionMap() ;
-				Set<String> matchingResultSet = new HashSet<String>() ;
-				
-				String[] sentences = sds.getSentences(url) ;
-				for(String sentence : sentences){
-//					fs.matchFunction(sentence, standardFuncMap) ;
-					if(standardFuncMap.isEmpty()){
-						break ;
+			funcsObj.put("functions", new JSONArray()) ;
+		} catch (JSONException e1) {
+			e1.printStackTrace();
+		}
+		int counter = 1 ; 
+		
+		for(Map.Entry<String, String> entry : funcService.getAllFuncSignatureMap().entrySet()) {  
+			String funcName = funcService.getFuncNameFrmSignature(entry.getKey()) ;
+			try {
+				JSONObject funcItem = null ;
+				if(funcsObj.has("functions")){
+					JSONArray funcArray = funcsObj.getJSONArray("functions") ;
+					//find specific func item in array
+					for(int i=0; i<funcArray.length(); i++){
+						if(funcArray.getJSONObject(i).getString("name").equals(funcName)){
+							funcItem = funcArray.getJSONObject(i) ;
+						}
 					}
 				}
+					
+				//Not found -> create & store new item
+				if(funcItem==null){
+					funcItem = new JSONObject() ;
+					funcItem.put("id", counter++) ;
+					funcItem.put("name", funcName) ;
+					funcItem.put("result", "");
+					funcItem.put("children", new JSONArray()) ;
+					funcsObj.accumulate("functions", funcItem) ;
+				} 
 				
-				//assemble results
-				String jsonRsp = "{\"Functions\":[" ;
+				//add func def str to children
+				JSONObject funcChild = new JSONObject() ;
+				funcChild.put("id", counter++) ;
+				funcChild.put("name", entry.getKey()) ;
+				funcChild.put("result", "");
+				funcChild.put("children", new JSONArray()) ;
+				funcItem.accumulate("children", funcChild) ;
 				
-				Iterator<Map.Entry<String, JSONObject>> entries = resMap.entrySet().iterator();  
-				while (entries.hasNext()) {  
-					Entry<String, JSONObject> entry = entries.next();  
-					jsonObj = entry.getValue() ;
-					jsonRsp += jsonObj.toString() ;
-					if(entries.hasNext()){
-						jsonRsp += "," ;
-					}
-				}  
-				
-				jsonRsp += "]}";
-				response = Response.ok(jsonRsp).type(MediaType.APPLICATION_JSON) ;
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
-			
-			if(	nfs.close() && ts.close() && sds.close()){
-				
-			}
-			
-			
-		} catch (IOException | JSONException e) {
-			e.printStackTrace();
-			response = Response.serverError().type(MediaType.APPLICATION_JSON);
-		} 
+		}
 		
+		response = Response.ok(funcsObj.toString()).type(MediaType.APPLICATION_JSON) ;
 		
 		///////////////HTTP Cache by Expire////////////////
 		//Expires:
@@ -125,5 +111,10 @@ public class FunctionServiceApi {
 		return response.build();
 	}
 
+	
+	public static void main(String[] args){
+		FunctionServiceApi api = new FunctionServiceApi() ;
+		api.getAllFuncMappings() ;
+	}
 
 }

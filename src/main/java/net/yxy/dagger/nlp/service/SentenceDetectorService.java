@@ -88,7 +88,7 @@ public class SentenceDetectorService {
 			
 			
 			FunctionService fs = new FunctionService() ;
-			Map<String, String> standardFuncMap= fs.getStandardFunctionMap() ;
+			Map<String, String> standardFuncMap= null;
 			Set<String> matchingResultSet = new HashSet<String>() ;
 			
 //			for(String sentence : sentences){

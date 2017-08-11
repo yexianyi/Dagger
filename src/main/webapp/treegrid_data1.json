@@ -1,0 +1,100 @@
+ [
+        {
+            "id": 1,
+            "name": "AVG",
+            "result": "",
+            "children": [
+                {
+                    "id": 2,
+                    "name": "AVG(~number)",
+                    "result": "",
+                    "children": []
+                },
+                {
+                    "id": 3,
+                    "name": "AVG(@null)",
+                    "result": "",
+                    "children": []
+                },
+                {
+                    "id": 4,
+                    "name": "AVG(~string)",
+                    "result": "",
+                    "children": []
+                },
+                {
+                    "id": 5,
+                    "name": "AVG(~interval_day)",
+                    "result": "",
+                    "children": []
+                },
+                {
+                    "id": 6,
+                    "name": "AVG(~interval_year)",
+                    "result": "",
+                    "children": []
+                }
+            ]
+        },
+        {
+            "id": 7,
+            "name": "CORR",
+            "result": "",
+            "children": [
+                {
+                    "id": 8,
+                    "name": "CORR(~number,~number)",
+                    "result": "",
+                    "children": []
+                },
+                {
+                    "id": 9,
+                    "name": "CORR(~number,~string)",
+                    "result": "",
+                    "children": []
+                },
+                {
+                    "id": 10,
+                    "name": "CORR(~string,~number)",
+                    "result": "",
+                    "children": []
+                },
+                {
+                    "id": 11,
+                    "name": "CORR(~string,~string)",
+                    "result": "",
+                    "children": []
+                },
+                {
+                    "id": 12,
+                    "name": "CORR(@null,@null)",
+                    "result": "",
+                    "children": []
+                },
+                {
+                    "id": 13,
+                    "name": "CORR(@null,~string)",
+                    "result": "",
+                    "children": []
+                },
+                {
+                    "id": 14,
+                    "name": "CORR(@null,~number)",
+                    "result": "",
+                    "children": []
+                },
+                {
+                    "id": 15,
+                    "name": "CORR(~string,@null)",
+                    "result": "",
+                    "children": []
+                },
+                {
+                    "id": 16,
+                    "name": "CORR(~number,@null)",
+                    "result": "",
+                    "children": []
+                }
+            ]
+        }
+    ]

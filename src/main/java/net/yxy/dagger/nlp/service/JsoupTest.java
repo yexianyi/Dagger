@@ -33,7 +33,7 @@ public class JsoupTest {
 		Map<String, Integer> statistic = new HashMap<String, Integer>() ;
 		
 		FunctionService fs = new FunctionService() ;
-		final Map<String, String> standardFuncMap = fs.getStandardFunctionMap() ;
+		final Map<String, String> standardFuncMap = null ;
 		for (Entry<String, String> entity : standardFuncMap.entrySet()) {
 //			Elements elems = doc.body().getElementsContainingText(entity.getKey()) ;
 			Pattern pattern = Pattern.compile("\\b(?i)"+entity.getKey()+"\\b");
