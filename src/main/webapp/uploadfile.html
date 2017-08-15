@@ -45,6 +45,7 @@
    	<div style="margin:20px 0;"></div>
    	<div style="margin-bottom:20px">
        	<a href="javascript:void(0)" class="easyui-linkbutton" onclick="loadFunctions()" style="width:120px">Load Func</a>
+       	<a href="javascript:void(0)" class="easyui-linkbutton" onclick="prepareSchema()" style="width:120px">Prepare Schema</a>
        	<a href="javascript:void(0)" class="easyui-linkbutton" onclick="testFunctions()" style="width:120px">Start Test</a>
    	</div>
     <table title="Function Testing Report" id="function_treegrid" class="easyui-treegrid" style="width:700px;height:500px"
@@ -58,21 +59,55 @@
     </table>
 	
 	<script>
+		function prepareSchema(){
+			var data = new FormData($('#jdbcDrvCfgForm')[0]);
+            $.ajax({ 
+            	url: '/dagger/api/service/jdbc/prepareSchema',
+           	    data: data,
+           	    cache: false,
+           	    contentType: false,
+           	    processData: false,
+           	    type: 'POST',
+	            success: function(response){        
+	            	//var jsonRsp = jQuery.parseJSON(JSON.stringify(response));
+	            	//alert(jsonRsp) ;
+	            	$("#testConnResult").text(response);
+	            	
+	            },
+				error: function (msg, url, line) {
+				    //alert('msg = ' + msg.toString() + ', url = ' + url + ', line = ' + line);
+					$("#testConnResult").text(msg.responseText);
+				}
+	        }); 
+		}
+	
 		function loadFunctions(){
 			$.get('api/service/functions/getAll',function(data){
 				  $('#function_treegrid').treegrid('loadData',data.functions);
 				},'json');
 		}
 		
-		function startFunctions(){
-			$.get('api/service/functions/getAll',function(data){
-				  $('#function_treegrid').treegrid('loadData',data.functions);
-				},'json');
+		function testFunctions(){
+			var data = new FormData($('#jdbcDrvCfgForm')[0]);
+            $.ajax({ 
+            	url: 'api/service/functions/testAll',
+           	    data: data,
+           	    cache: false,
+           	    contentType: false,
+           	    processData: false,
+           	    type: 'POST',
+	            success: function(response){        
+	            	$("#testConnResult").text(response);
+	            	
+	            },
+				error: function (msg, url, line) {
+					$("#testConnResult").text(msg.responseText);
+				}
+	        }); 
 		}
 	
 	
         function testConnection(){
-        	
         	var data = new FormData($('#jdbcDrvCfgForm')[0]);
             $.ajax({ 
             	url: '/dagger/api/service/jdbc/uploadAndTest',

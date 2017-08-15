@@ -1,9 +1,11 @@
 package net.yxy.dagger.rest;
 
 
+import java.io.File;
 import java.util.Map;
 
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.CacheControl;
@@ -13,16 +15,17 @@ import javax.ws.rs.core.Response;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
+import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import net.yxy.dagger.core.service.JdbcDriverService;
 import net.yxy.dagger.global.Constants;
 import net.yxy.dagger.match.service.FunctionService;
 
 @Path("/service/functions")
 public class FunctionServiceApi {
 	static private Logger logger = LoggerFactory.getLogger(FunctionServiceApi.class);  
-	private FunctionService funcService = new FunctionService() ;
 	
 	@GET
     @Path("/getAll")
@@ -37,6 +40,7 @@ public class FunctionServiceApi {
 		}
 		int counter = 1 ; 
 		
+		FunctionService funcService = new FunctionService() ;
 		for(Map.Entry<String, String> entry : funcService.getAllFuncSignatureMap().entrySet()) {  
 			String funcName = funcService.getFuncNameFrmSignature(entry.getKey()) ;
 			try {
@@ -110,7 +114,65 @@ public class FunctionServiceApi {
 		
 		return response.build();
 	}
+	
+	
+	
+	
+	@POST
+    @Path("/testAll")
+    @Produces(MediaType.APPLICATION_JSON)
+	public Response testAll(	@FormDataParam("jdbcName") String jdbcName, 
+								@FormDataParam("jdbcCls") String jdbcClass, 
+								@FormDataParam("jdbcUrl") String jdbcUrl,
+								@FormDataParam("jdbcUserName") String jdbcUserName,
+								@FormDataParam("jdbcPwd") String jdbcPassword) {
+		Response.ResponseBuilder response = null ;
+		JSONObject funcsObj = new JSONObject() ;
+//		funcsObj.put("results", value) ;
+		
+		String stortedPath = getStorePath(jdbcName) ;
+		JdbcDriverService jdbcService = new JdbcDriverService(stortedPath, jdbcClass, jdbcUrl, jdbcUserName, jdbcPassword) ;
+		FunctionService funcService = new FunctionService(jdbcService) ;
+		
+		for(Map.Entry<String, String> entry : funcService.getAllFuncSignatureMap().entrySet()) {  
+			String funcName = funcService.getFuncNameFrmSignature(entry.getKey()) ;
+			System.out.println("Testing "+ funcName);
+			Map<String[], Boolean> resultMap = funcService.testFunction(entry.getKey(), entry.getValue()) ;
+			funcService.consolidateResults(resultMap);
+			resultMap.forEach((k,v)->{
+				System.out.print(funcName+"(") ;
+				for(int i=0; i<k.length; i++){
+					System.out.print(k[i]);
+					if(i==k.length-1){
+						System.out.print(")") ;
+						System.out.println() ;
+						return ;
+					}
+					System.out.print(",") ;
+				}
+				System.out.println() ;
+			});
+		}
+		
+		
+		
+		response = Response.ok(funcsObj.toString()).type(MediaType.APPLICATION_JSON) ;
+		
+		CacheControl cc = new CacheControl() ;
+		cc.setMaxAge(Constants.REFRESH_INTERVAL);
+		response.cacheControl(cc) ;
+		
+		
+		
+		return response.build();
+	}
 
+	
+	private String getStorePath(String jdbcName) {
+		String path = Constants.UPLOAD_FOLDER+ File.separator + jdbcName ;
+		File dir = new File(path) ;
+		return Boolean.TRUE == dir.exists() ? path : null;
+	}
 	
 	public static void main(String[] args){
 		FunctionServiceApi api = new FunctionServiceApi() ;

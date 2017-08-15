@@ -87,7 +87,9 @@ public class DataTypeService {
 	public List<String> getDataTypesByTag(String tag){
 		List<String> res = new ArrayList<String>() ;
 		getDataTypesByTag(tag, dataTypes, res, false) ;
-		res.remove(0) ;
+		if(tag.startsWith("~")){
+			res.remove(0) ;
+		}
 		return res ;
 	}
 	
@@ -227,7 +229,7 @@ public class DataTypeService {
 
 	public static void main(String[] args) throws JSONException {
 		DataTypeService dtService = new DataTypeService() ;
-		Object res = dtService.getDataTypesByTag("~number");
+		Object res = dtService.getDataTypesByTag("~any");
 //		String res = dtService.getParentDataTypeByTag("@integer") ;
 		System.out.println(res);
 		

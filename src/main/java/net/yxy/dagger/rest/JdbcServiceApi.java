@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
@@ -84,7 +86,45 @@ public class JdbcServiceApi {
 	}
 
 	
+	@POST
+	@Path("/prepareSchema")
+	@Consumes(MediaType.MULTIPART_FORM_DATA)
+	public Response prepareSchema(	@FormDataParam("jdbcName") String jdbcName, 
+										@FormDataParam("jdbcCls") String jdbcClass, 
+										@FormDataParam("jdbcUrl") String jdbcUrl,
+										@FormDataParam("jdbcUserName") String jdbcUserName,
+										@FormDataParam("jdbcPwd") String jdbcPassword) {
+		
+		String stortedPath = getStorePath(jdbcName) ;
+		JdbcDriverService jdbcService = new JdbcDriverService(stortedPath, jdbcClass, jdbcUrl, jdbcUserName, jdbcPassword) ;
+		List<String> supportedDataTypes = new ArrayList<String>() ;
+//		supportedDataTypes.add("TINYINT") ;
+		supportedDataTypes.add("SMALLINT") ;
+		supportedDataTypes.add("INT") ;
+		supportedDataTypes.add("BIGINT") ;
+		supportedDataTypes.add("REAL") ;
+		supportedDataTypes.add("FLOAT") ;
+		supportedDataTypes.add("DECIMAL") ;
+//		supportedDataTypes.add("DOUBLE") ;
+		supportedDataTypes.add("BOOLEAN") ;
+		supportedDataTypes.add("CHAR") ;
+		supportedDataTypes.add("VARCHAR") ;
+//		supportedDataTypes.add("STRING") ;
+		supportedDataTypes.add("TIMESTAMP") ;
+		jdbcService.createTestSchema(supportedDataTypes) ; 
+
+		return Response.status(200)
+				.entity("Create test schema succeed!").build();
+	}
 	
+	
+	private String getStorePath(String jdbcName) {
+		String path = Constants.UPLOAD_FOLDER+ File.separator + jdbcName ;
+		File dir = new File(path) ;
+		return Boolean.TRUE == dir.exists() ? path : null;
+	}
+
+
 	public static void main(String[] args) throws IOException 
 	{
 	    final javax.ws.rs.client.Client client = ClientBuilder.newBuilder().register(MultiPartFeature.class).build();
