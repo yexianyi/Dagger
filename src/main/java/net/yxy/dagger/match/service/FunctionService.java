@@ -138,20 +138,33 @@ public class FunctionService {
 		return null;
 	}
 	
-//	public Map<String[], Boolean> getFuncParamCombinates(String funcDefStr){
-//		//retrieve datatype list for each function parameter
-//		String[] params = getFuncParams(funcDefStr) ;
-//		Map<Integer, List<String>> paramMap = new HashMap<Integer, List<String>>() ;
-//		DataTypeService dtService = new DataTypeService() ;
-//		for(int i=0; i<params.length; i++){
-//			List<String> datatypes = dtService.getDataTypesByTag(params[i].trim());
-//			paramMap.put(i, datatypes) ;
-//		}
-//		
-//		//generate function param combinations and test them.
-//		//paramCombinates is used for recording testing results for each combination
-//		return getFuncParamCombinations(paramMap) ;
-//	}
+	
+	public Map<String[], Boolean> getFuncParamCombinates(String funcDefStr){
+		String[] params = getFuncParams(funcDefStr) ;
+		Map<Integer, List<String>> paramMap = new HashMap<Integer, List<String>>() ;
+		DataTypeService dtService = new DataTypeService() ;
+		for(int i=0; i<params.length; i++){
+			List<String> datatypes = dtService.getDataTypesByTag(params[i].trim());
+			paramMap.put(i, datatypes) ;
+		}
+		
+		//paramCombinates is used for recording testing results for each combination
+		return getFuncParamCombinations(paramMap) ;
+	}
+	
+	public Map<String[], Boolean> getFuncParamChildren(String funcDefStr){
+		String[] params = getFuncParams(funcDefStr) ;
+		Map<Integer, List<String>> paramMap = new HashMap<Integer, List<String>>() ;
+		DataTypeService dtService = new DataTypeService() ;
+		for(int i=params.length-1; i>=0 && params[i].startsWith("~"); i--){
+			List<String> datatypes = dtService.getDataTypeChildrenByTag(params[i].trim());
+			paramMap.put(i, datatypes) ;
+		}
+		
+		return getFuncParamCombinations(paramMap)  ; 
+	}
+	
+	
 	
 	public String getFuncSqlStr(String funcKey){
 		return funcMappings.get(funcKey) ;
@@ -686,10 +699,11 @@ public class FunctionService {
 //			
 //			System.out.println(map.keySet().containsAll(set));
 			
-		List<String> funcMappings = funcService.generateFuncMapping("avg", resultMap) ;
-		for(String funcMapping : funcMappings){
-			System.out.println(funcMapping);
-		}
+		Map<String[], Boolean> resultMap1 = funcService.getFuncParamChildren("CORR(~number,~number)") ;
+		resultMap1.forEach((k,v)->{
+			System.out.println(k[0] + ", " + k[1]);
+		});
+
 		
 //		funcService.getStandardFuncNameMap() .forEach(p->System.out.println(p));
 	}

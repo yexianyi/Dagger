@@ -179,7 +179,6 @@ public class DataTypeService {
 	}
 	
 	
-	
 	public Set<String> getChildDataTypeByTag(String tag){
 		Set<String> set = new HashSet<String>() ;
 		getChildDataTypeByTag(tag, dataTypes, set) ;
@@ -257,7 +256,7 @@ public class DataTypeService {
 
 	public static void main(String[] args) throws JSONException {
 		DataTypeService dtService = new DataTypeService() ;
-		Object res = dtService.getDataTypeChildrenByTag("~any");
+		Object res = dtService.getDataTypeChildrenByTag("@integer");
 //		String res = dtService.getParentDataTypeByTag("@integer") ;
 		System.out.println(res);
 		
