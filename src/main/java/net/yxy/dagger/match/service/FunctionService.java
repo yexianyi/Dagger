@@ -104,8 +104,6 @@ public class FunctionService {
         return funcMappings ;
 	}
 	
-	
-	
 
 	public Set<String> matchFunction(Set<String> materialSet, Map<String, String> standardFuncMap) {
 		Set<String> resultSet = new LinkedHashSet<String>() ;
@@ -125,8 +123,6 @@ public class FunctionService {
 		
 		return resultSet ;
 	}
-	
-	
 	
 	
 	private String[] getFuncParams(String funcDefStr){
@@ -157,6 +153,10 @@ public class FunctionService {
 //		return getFuncParamCombinations(paramMap) ;
 //	}
 	
+	public String getFuncSqlStr(String funcKey){
+		return funcMappings.get(funcKey) ;
+	}
+	
 	public Map<String[], Boolean> testFunction(String funcDefStr, String funcSqlStr){
 		//funcDefStr =  CORR(~number,~string) ;
 			Connection conn = null;
@@ -181,7 +181,6 @@ public class FunctionService {
 			Map<String[], Boolean> paramCombinates = getFuncParamCombinations(paramMap) ;
 			for(Entry<String[], Boolean> entry : paramCombinates.entrySet()){
 				String[] paramArray = entry.getKey() ;
-				System.out.println(paramArray[0]);
 				Boolean result = executeFunction(conn, funcSqlStr, paramArray) ;
 				if(result==null){
 					entry.setValue(null) ;
@@ -349,7 +348,7 @@ public class FunctionService {
 						}
 						
 						Set<String> children = dtService.getChildDataTypeByTag(currDataType) ;
-						if(tempMap.keySet().containsAll(children)){	//all of child are pass -> mark parent testing result as TRUE.
+						if(tempMap.keySet().containsAll(children)){	//all of children are pass -> mark parent testing result as TRUE.
 							resultMap.put(key, true) ;
 							tempMap.put(currDataType, key) ;
 						}else{	//one or more child are fail -> mark parent testing result as FALSE.

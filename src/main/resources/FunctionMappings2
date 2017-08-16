@@ -1,18 +1,5 @@
 #Functions
-
-#aggregate and analytical aggregate functions
-#AVG(~number): AVG(?)
-#AVG(@null): AVG(?)
-#AVG(~string): AVG(?)
-#AVG(~interval_day): AVG(?)
-#AVG(~interval_year): AVG(?)
-#CORR(~number,~number): CORR(?, ?)
-#CORR(~number,~string): CORR(?, ?)
-#CORR(~string,~number): CORR(?, ?)
-#CORR(~string,~string): CORR(?, ?)
-#CORR(@null,@null): CORR(?, ?)
-#CORR(@null,~string): CORR(?, ?)
-#CORR(@null,~number): CORR(?, ?)
-#CORR(~string,@null): CORR(?, ?)
-#CORR(~number,@null): CORR(?, ?)
-COUNT(~any): COUNT(?)
+AVG(~number): AVG(?)
+CORR(~number,~number): CORR(?, ?)
+CORR(~number,~string): CORR(?, ?)
+INSERT(~any,~any,~any,~any): INSERT(?, ?, ?, ?)

@@ -136,23 +136,94 @@ public class FunctionServiceApi {
 		
 		for(Map.Entry<String, String> entry : funcService.getAllFuncSignatureMap().entrySet()) {  
 			String funcName = funcService.getFuncNameFrmSignature(entry.getKey()) ;
-			System.out.println("Testing "+ funcName);
 			Map<String[], Boolean> resultMap = funcService.testFunction(entry.getKey(), entry.getValue()) ;
 			funcService.consolidateResults(resultMap);
 			resultMap.forEach((k,v)->{
-				System.out.print(funcName+"(") ;
-				for(int i=0; i<k.length; i++){
-					System.out.print(k[i]);
-					if(i==k.length-1){
-						System.out.print(")") ;
-						System.out.println() ;
-						return ;
+				if(v==Boolean.TRUE){
+					System.out.print(funcName+"(") ;
+					for(int i=0; i<k.length; i++){
+						System.out.print(k[i]);
+						if(i==k.length-1){
+							System.out.print(")") ;
+							System.out.println() ;
+							return ;
+						}
+						System.out.print(",") ;
 					}
-					System.out.print(",") ;
+					System.out.println() ;
 				}
-				System.out.println() ;
 			});
 		}
+		
+		
+		
+		response = Response.ok(funcsObj.toString()).type(MediaType.APPLICATION_JSON) ;
+		
+		CacheControl cc = new CacheControl() ;
+		cc.setMaxAge(Constants.REFRESH_INTERVAL);
+		response.cacheControl(cc) ;
+		
+		
+		
+		return response.build();
+	}
+	
+	
+	/**
+	 * 
+	 * @param jdbcName
+	 * @param jdbcClass
+	 * @param jdbcUrl
+	 * @param jdbcUserName
+	 * @param jdbcPassword
+	 * @param funcFullName
+	 * @return
+	 * {
+		   "result":{
+		      "success":"true",
+		      "error":"none"
+		   }
+		}
+	 */
+	@POST
+    @Path("/test")
+    @Produces(MediaType.APPLICATION_JSON)
+	public Response testFunction(	@FormDataParam("jdbcName") String jdbcName, 
+									@FormDataParam("jdbcCls") String jdbcClass, 
+									@FormDataParam("jdbcUrl") String jdbcUrl,
+									@FormDataParam("jdbcUserName") String jdbcUserName,
+									@FormDataParam("jdbcPwd") String jdbcPassword,
+									@FormDataParam("fullName") String funcFullName) {
+		Response.ResponseBuilder response = null ;
+		JSONObject funcsObj = new JSONObject() ;
+		try {
+			funcsObj.put("result", new JSONObject()) ;
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+		
+		String stortedPath = getStorePath(jdbcName) ;
+		JdbcDriverService jdbcService = new JdbcDriverService(stortedPath, jdbcClass, jdbcUrl, jdbcUserName, jdbcPassword) ;
+		FunctionService funcService = new FunctionService(jdbcService) ;
+//			String funcName = funcService.getFuncNameFrmSignature(funcFullName) ;
+			String funcSqlStr = funcService.getFuncSqlStr(funcFullName) ;
+			Map<String[], Boolean> resultMap = funcService.testFunction(funcFullName, funcSqlStr) ;
+			funcService.consolidateResults(resultMap);
+			resultMap.forEach((k,v)->{
+				if(v==Boolean.TRUE){
+//					System.out.print(funcName+"(") ;
+//					for(int i=0; i<k.length; i++){
+//						System.out.print(k[i]);
+//						if(i==k.length-1){
+//							System.out.print(")") ;
+//							System.out.println() ;
+//							return ;
+//						}
+//						System.out.print(",") ;
+//					}
+//					System.out.println() ;
+				}
+			});
 		
 		
 		

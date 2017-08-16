@@ -48,7 +48,7 @@
        	<a href="javascript:void(0)" class="easyui-linkbutton" onclick="prepareSchema()" style="width:120px">Prepare Schema</a>
        	<a href="javascript:void(0)" class="easyui-linkbutton" onclick="testFunctions()" style="width:120px">Start Test</a>
    	</div>
-    <table title="Function Testing Report" id="function_treegrid" class="easyui-treegrid" style="width:700px;height:500px"
+    <table title="Function Testing Report" id="funcList" class="easyui-treegrid" style="width:700px;height:500px"
             data-options="rownumbers: true, idField: 'id', treeField: 'name' ">
         <thead>
             <tr>
@@ -62,7 +62,7 @@
 		function prepareSchema(){
 			var data = new FormData($('#jdbcDrvCfgForm')[0]);
             $.ajax({ 
-            	url: '/dagger/api/service/jdbc/prepareSchema',
+            	url: 'api/service/jdbc/prepareSchema',
            	    data: data,
            	    cache: false,
            	    contentType: false,
@@ -83,34 +83,64 @@
 	
 		function loadFunctions(){
 			$.get('api/service/functions/getAll',function(data){
-				  $('#function_treegrid').treegrid('loadData',data.functions);
+				  $('#funcList').treegrid('loadData',data.functions);
 				},'json');
 		}
 		
 		function testFunctions(){
+			var roots = $('#funcList').treegrid('getRoots');
+			for(var i=0; i<roots.length; i++){
+				testFuncNode(roots[i]) ;
+			}
+		}
+		
+		function testFuncNode(node){
+			if(node.name.indexOf('(')!=-1){
+				doTest(node) ;
+			}
+			
+			if(node.children.length>0){
+				for(var i=0; i<node.children.length; i++){
+					testFuncNode(node.children[i]) ;
+				}
+			}
+		}
+		
+		function doTest(node){
 			var data = new FormData($('#jdbcDrvCfgForm')[0]);
+			data.append('fullName', node.name);
+			node.result = "Testing..." ;
+			refresh(node) ;
+			
             $.ajax({ 
-            	url: 'api/service/functions/testAll',
+            	url: 'api/service/functions/test',
            	    data: data,
            	    cache: false,
            	    contentType: false,
            	    processData: false,
            	    type: 'POST',
 	            success: function(response){        
-	            	$("#testConnResult").text(response);
-	            	
+	            	node.result = response.result ;
+	            	refresh(node) ;
 	            },
 				error: function (msg, url, line) {
-					$("#testConnResult").text(msg.responseText);
+					node.result = msg.responseText ;
+					refresh(node) ;
 				}
 	        }); 
+			
 		}
+		
+		function refresh(node){
+			$('#funcList').treegrid('refresh', node.id);
+		}
+		
 	
 	
         function testConnection(){
         	var data = new FormData($('#jdbcDrvCfgForm')[0]);
             $.ajax({ 
-            	url: '/dagger/api/service/jdbc/uploadAndTest',
+            	url: 'api/service/jdbc/uploadAndTest',
            	    data: data,
            	    cache: false,
            	    contentType: false,
@@ -127,6 +157,7 @@
 					$("#testConnResult").text(msg.responseText);
 				}
 	        }); 
+            
         }
     </script>
 	
