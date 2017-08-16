@@ -84,6 +84,34 @@ public class DataTypeService {
 		 }};  
 	}
 	
+	public List<String> getDataTypeChildrenByTag(String tag){
+		List<String> res = new ArrayList<String>() ;
+		getDataTypeChildren(tag, dataTypes, res) ;
+		return res ;
+	}
+	
+	private void getDataTypeChildren(String tag, Map<String, Object> datatypeMap, List<String> res){
+		for (String key : datatypeMap.keySet()) {  
+			Object val = datatypeMap.get(key) ;
+			//found
+		    if(key.equalsIgnoreCase(tag)){
+		    	if(val instanceof String){
+		    		return ;
+		    	}else if(val instanceof Map){
+		    		Map<String, Object> subMap = (Map<String, Object>) val ;
+		    		res.addAll(subMap.keySet()) ;
+		    	}
+		    }else{ //not found
+		    	if(val instanceof Map){
+		    		Map<String, Object> subMap = (Map<String, Object>) val ;
+		    		getDataTypeChildren(tag, subMap, res) ;
+		    	}
+		    } 
+		  
+		}  
+	}
+	
+	
 	public List<String> getDataTypesByTag(String tag){
 		List<String> res = new ArrayList<String>() ;
 		getDataTypesByTag(tag, dataTypes, res, false) ;
@@ -229,7 +257,7 @@ public class DataTypeService {
 
 	public static void main(String[] args) throws JSONException {
 		DataTypeService dtService = new DataTypeService() ;
-		Object res = dtService.getDataTypesByTag("~any");
+		Object res = dtService.getDataTypeChildrenByTag("~any");
 //		String res = dtService.getParentDataTypeByTag("@integer") ;
 		System.out.println(res);
 		
